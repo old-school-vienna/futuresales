@@ -1,24 +1,98 @@
-import java.io.FileNotFoundException
+import java.io.{BufferedWriter, File, FileNotFoundException, FileWriter}
 
 import scala.io.Source
-import scala.util.Try
+
 
 object TrainPreprocessing {
 
+  private val cacheFilename = "data/sales_train_enriched.csv"
+  private val sepa = ","
+
+  case class SalesTrain(
+                         date: String,
+                         month: Int,
+                         shop_id: Int,
+                         item_id: Int,
+                         item_price: Double,
+                         item_cnt_day: Double,
+                         cat_id: Int,
+                       )
+
   def read(): Seq[Train] = {
     try {
-      readFromCache()
+      val tr = readFromCache()
+      println("Successfully read from cache")
+      tr
     } catch {
       case _: FileNotFoundException =>
         val tr = readTrain()
+        println("Successfully read from original")
         writeToCache(tr)
+        println("Successfully wrote to cache")
         tr
     }
   }
 
-  private def readFromCache(): Seq[Train] = ???
 
-  private def writeToCache(iterable: Iterable[Train]): Unit = ???
+  private def readFromCache(): Seq[Train] = {
+
+    def lineToTrain(line: Array[String]): Train = {
+      Train(month = line(0).toInt,
+        shop_id = line(1).toInt,
+        item_id = line(2).toInt,
+        item_price = line(3).toDouble,
+        item_cnt = line(4).toDouble,
+        cat_id = line(5).toInt,
+      )
+    }
+
+    val src = Source.fromFile(cacheFilename)
+    try {
+      src.getLines()
+        .map(_.split(","))
+        .map(lineToTrain)
+        .toSeq
+    } finally {
+      src.close()
+    }
+  }
+
+  private def writeToCache(trains: Iterable[Train]): Unit = {
+
+
+    def writeFile(filename: String, lines: Iterable[String]): Unit = {
+      val file = new File(filename)
+      val bw = new BufferedWriter(new FileWriter(file))
+      try {
+        for (line <- lines) {
+          bw.write(line)
+        }
+      } finally {
+        bw.close()
+      }
+    }
+
+    def trainToLine(t: Train): String = {
+      val sb = new StringBuilder
+      sb.append(t.month)
+      sb.append(sepa)
+      sb.append(t.shop_id)
+      sb.append(sepa)
+      sb.append(t.item_id)
+      sb.append(sepa)
+      sb.append(t.item_price)
+      sb.append(sepa)
+      sb.append(t.item_cnt)
+      sb.append(sepa)
+      sb.append(t.cat_id)
+      sb.append("\n")
+
+      sb.toString()
+    }
+
+    val slines: Iterable[String] = trains.map(trainToLine)
+    writeFile(cacheFilename, slines)
+  }
 
   private def readCategories(filename: String): Map[Int, Int] = {
 
@@ -46,10 +120,10 @@ object TrainPreprocessing {
   }
 
   private def readSalesTrainCsv[K, T](
-                               filename: String,
-                               fKey: SalesTrain => K,
-                               fAgg: Iterable[SalesTrain] => T,
-                               catMapping: Map[Int, Int]): Seq[T] = {
+                                       filename: String,
+                                       fKey: SalesTrain => K,
+                                       fAgg: Iterable[SalesTrain] => T,
+                                       catMapping: Map[Int, Int]): Seq[T] = {
 
     def toSailsTrain(line: Array[String]): SalesTrain = {
       SalesTrain(
@@ -92,8 +166,6 @@ object TrainPreprocessing {
     val catMap = readCategories("data/items.csv")
 
     readSalesTrainCsv("data/sales_train.csv", monthShopItemKey, toMonthShopItemSales, catMap)
-      .toList
-      .sortBy(s => (s.item_id, s.shop_id, s.month))
   }
 
 }
