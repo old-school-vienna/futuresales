@@ -1,28 +1,26 @@
+import java.io.FileNotFoundException
+
 import scala.io.Source
+import scala.util.Try
 
-case class SalesTrain(
-                       date: String,
-                       month: Int,
-                       shop_id: Int,
-                       item_id: Int,
-                       item_price: Double,
-                       item_cnt_day: Double,
-                       cat_id: Int,
-                     )
+object TrainPreprocessing {
 
-case class Train(
-                  month: Int,
-                  shop_id: Int,
-                  item_id: Int,
-                  item_price: Double,
-                  item_cnt: Double,
-                  cat_id: Int,
-                )
+  def read(): Seq[Train] = {
+    try {
+      readFromCache()
+    } catch {
+      case _: FileNotFoundException =>
+        val tr = readTrain()
+        writeToCache(tr)
+        tr
+    }
+  }
 
+  private def readFromCache(): Seq[Train] = ???
 
-object Analyse extends App {
+  private def writeToCache(iterable: Iterable[Train]): Unit = ???
 
-  def readCategories(filename: String): Map[Int, Int] = {
+  private def readCategories(filename: String): Map[Int, Int] = {
 
     def readIds(line: Array[String]): (Int, Int) = {
       val len = line.length
@@ -47,7 +45,7 @@ object Analyse extends App {
     }
   }
 
-  def readSalesTrainCsv[K, T](
+  private def readSalesTrainCsv[K, T](
                                filename: String,
                                fKey: SalesTrain => K,
                                fAgg: Iterable[SalesTrain] => T,
@@ -74,7 +72,8 @@ object Analyse extends App {
     }
   }
 
-  private def readTrain(): Unit = {
+  private def readTrain(): Seq[Train] = {
+
     def toMonthShopItemSales(sales: Iterable[SalesTrain]): Train = {
       val sSeq = sales.toSeq
       val first = sSeq.head
@@ -92,22 +91,9 @@ object Analyse extends App {
 
     val catMap = readCategories("data/items.csv")
 
-    val msis = readSalesTrainCsv("data/sales_train.csv", monthShopItemKey, toMonthShopItemSales, catMap)
+    readSalesTrainCsv("data/sales_train.csv", monthShopItemKey, toMonthShopItemSales, catMap)
       .toList
       .sortBy(s => (s.item_id, s.shop_id, s.month))
-
-    val months = msis.groupBy(m => m.month).keys.toList.sorted
-    println(s"months: ${months.size} [${months.mkString(",")}]")
-    val items = msis.groupBy(m => m.item_id).keys.toList.sorted
-    val il = items.take(10).mkString(",")
-    val ir = items.takeRight(10).mkString(",")
-    println(s"items: ${items.size} [$il ... $ir]")
-    val shops = msis.groupBy(m => m.shop_id).keys.toList.sorted
-    println(s"shops: ${shops.size} [${shops.mkString(",")}]")
-
-    println()
-    msis.take(10).foreach(m => println(m))
   }
 
-  readTrain()
 }
