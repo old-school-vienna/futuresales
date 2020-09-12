@@ -6,7 +6,7 @@ import scala.io.Source
 object TrainPreprocessing {
 
   private val cacheFilename = "data/sales_train_enriched.csv"
-  private val sepa = ","
+  private val separator = ","
 
   case class SalesTrain(
                          date: String,
@@ -49,7 +49,7 @@ object TrainPreprocessing {
     val src = Source.fromFile(cacheFilename)
     try {
       src.getLines()
-        .map(_.split(","))
+        .map(_.split(separator))
         .map(lineToTrain)
         .toSeq
     } finally {
@@ -75,23 +75,23 @@ object TrainPreprocessing {
     def trainToLine(t: Train): String = {
       val sb = new StringBuilder
       sb.append(t.month)
-      sb.append(sepa)
+      sb.append(separator)
       sb.append(t.shop_id)
-      sb.append(sepa)
+      sb.append(separator)
       sb.append(t.item_id)
-      sb.append(sepa)
+      sb.append(separator)
       sb.append(t.item_price)
-      sb.append(sepa)
+      sb.append(separator)
       sb.append(t.item_cnt)
-      sb.append(sepa)
+      sb.append(separator)
       sb.append(t.cat_id)
       sb.append("\n")
 
       sb.toString()
     }
 
-    val slines: Iterable[String] = trains.map(trainToLine)
-    writeFile(cacheFilename, slines)
+    val strLines: Iterable[String] = trains.map(trainToLine)
+    writeFile(cacheFilename, strLines)
   }
 
   private def readCategories(filename: String): Map[Int, Int] = {
@@ -101,7 +101,7 @@ object TrainPreprocessing {
       try {
         (line(len - 2).toInt, line(len - 1).toInt)
       } catch {
-        case e: Exception =>
+        case _: Exception =>
           val m = line.toList.mkString("(", ",", ")")
           throw new IllegalArgumentException(s"Could not read $m")
       }
@@ -111,7 +111,7 @@ object TrainPreprocessing {
     try {
       src.getLines()
         .drop(1)
-        .map(_.split(","))
+        .map(_.split(separator))
         .map(readIds)
         .toMap
     } finally {
