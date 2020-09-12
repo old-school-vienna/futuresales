@@ -15,7 +15,7 @@ object TrainPreprocessing {
                          catId: Int,
                        )
 
-  def read(): Seq[Train] = {
+  def read(): Seq[TrainDs] = {
     try {
       val tr = readFromCache()
       println("Successfully read from cache")
@@ -31,10 +31,10 @@ object TrainPreprocessing {
   }
 
 
-  private def readFromCache(): Seq[Train] = {
+  private def readFromCache(): Seq[TrainDs] = {
 
-    def lineToTrain(line: Array[String]): Train = {
-      Train(month = line(0).toInt,
+    def lineToTrain(line: Array[String]): TrainDs = {
+      TrainDs(month = line(0).toInt,
         shop_id = line(1).toInt,
         item_id = line(2).toInt,
         item_price = line(3).toDouble,
@@ -46,9 +46,9 @@ object TrainPreprocessing {
     Util.readCsv(cacheFilename, lineToTrain, headerLines = 0)
   }
 
-  private def writeToCache(trains: Iterable[Train]): Unit = {
+  private def writeToCache(trains: Iterable[TrainDs]): Unit = {
 
-    def trainToLine(t: Train): String = {
+    def trainToLine(t: TrainDs): String = {
       val sb = new StringBuilder
       sb.append(t.month)
       sb.append(separator)
@@ -108,12 +108,12 @@ object TrainPreprocessing {
       .map(t => fAgg(t._2))
   }
 
-  private def readTrain(): Seq[Train] = {
+  private def readTrain(): Seq[TrainDs] = {
 
-    def toMonthShopItemSales(sales: Iterable[SalesTrain]): Train = {
+    def toMonthShopItemSales(sales: Iterable[SalesTrain]): TrainDs = {
       val sSeq = sales.toSeq
       val first = sSeq.head
-      Train(
+      TrainDs(
         month = first.month,
         shop_id = first.shopId,
         item_id = first.itemId,
