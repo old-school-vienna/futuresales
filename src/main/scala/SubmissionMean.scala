@@ -27,17 +27,15 @@ object SubmissionMean extends App {
   /**
    * mean over days only days with value
    * subm_mean.csv
-   * 15 hours ago
-   * 0 seconds
-   * 1 seconds
    * 1.27689
    *
    * mean over month only days with value
    * subm_mean.csv
-   * just now
-   * 0 seconds
-   * 1 seconds
    * 2.94945
+   *
+   * mean of all ids per months including months with no submission
+   * subm_mean3.csv
+   * 2.04647
    */
   object SubmissionJustMean {
     def run(): Unit = {
@@ -45,7 +43,7 @@ object SubmissionMean extends App {
         .groupBy(st => (st.item_id, st.shop_id))
       val pm: Map[(Int, Int), Double] = propMapMean(trainData)
       val tests = Util.readCsv("data/test.csv", toTestDs).map(toSubm(pm)(_))
-      val outFileName = "data/subm_mean.csv"
+      val outFileName = "data/subm_mean3.csv"
       Util.writeCsv(filename = outFileName,
         trains = tests,
         fMap = toSubmStr,

@@ -47,7 +47,7 @@ object Util {
 
     def meanItems(items: Iterable[TrainDs]): Double = {
       val seqItems = items.toSeq
-      val mean = seqItems.map(i => math.max(0, i.item_cnt)).sum / seqItems.size
+      val mean = seqItems.map(i => math.max(0, i.item_cnt)).sum / 34
       mean
     }
 
