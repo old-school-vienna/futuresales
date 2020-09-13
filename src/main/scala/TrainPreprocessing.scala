@@ -41,11 +41,10 @@ object TrainPreprocessing {
 
     def lineToTrain(line: Array[String]): TrainDs = {
       TrainDs(month = line(0).toInt,
-        shop_id = line(1).toInt,
-        item_id = line(2).toInt,
-        item_price = line(3).toDouble,
-        item_cnt = line(4).toDouble,
-        cat_id = line(5).toInt,
+        shopItemId = ShopItemId(line(1).toInt, line(2).toInt),
+        itemPrice = line(3).toDouble,
+        itemCnt = line(4).toDouble,
+        catId = line(5).toInt,
       )
     }
 
@@ -58,15 +57,15 @@ object TrainPreprocessing {
       val sb = new StringBuilder
       sb.append(t.month)
       sb.append(separator)
-      sb.append(t.shop_id)
+      sb.append(t.shopItemId.shopId)
       sb.append(separator)
-      sb.append(t.item_id)
+      sb.append(t.shopItemId.itemId)
       sb.append(separator)
-      sb.append(t.item_price)
+      sb.append(t.itemPrice)
       sb.append(separator)
-      sb.append(t.item_cnt)
+      sb.append(t.itemCnt)
       sb.append(separator)
-      sb.append(t.cat_id)
+      sb.append(t.catId)
 
       sb.toString()
     }
@@ -91,8 +90,8 @@ object TrainPreprocessing {
   }
 
   private def readSalesTrainCsv(
-                                       filename: String,
-                                       catMapping: Map[Int, Int]): Seq[TrainDs] = {
+                                 filename: String,
+                                 catMapping: Map[Int, Int]): Seq[TrainDs] = {
 
     def toSailsTrain(line: Array[String]): SalesTrain = {
       SalesTrain(
@@ -100,7 +99,7 @@ object TrainPreprocessing {
         month = line(1).toInt,
         shopId = line(2).toInt,
         itemId = line(3).toInt,
-        itemPrice= line(4).toDouble,
+        itemPrice = line(4).toDouble,
         itemCntDay = line(5).toDouble,
         catId = catMapping(line(3).toInt))
     }
@@ -110,11 +109,10 @@ object TrainPreprocessing {
       val first = sSeq.head
       TrainDs(
         month = first.month,
-        shop_id = first.shopId,
-        item_id = first.itemId,
-        cat_id = first.catId,
-        item_price = sSeq.map(_.itemPrice).sum / sSeq.size,
-        item_cnt = sSeq.map(_.itemCntDay).sum,
+        shopItemId = ShopItemId(first.shopId, first.itemId),
+        catId = first.catId,
+        itemPrice = sSeq.map(_.itemPrice).sum / sSeq.size,
+        itemCnt = sSeq.map(_.itemCntDay).sum,
       )
     }
 
@@ -127,7 +125,7 @@ object TrainPreprocessing {
   private def readTrain(): Seq[TrainDs] = {
     val catMap = readCategories("data/items.csv")
     readSalesTrainCsv(
-      filename= "data/sales_train.csv",
+      filename = "data/sales_train.csv",
       catMapping = catMap)
   }
 

@@ -2,18 +2,22 @@ import Util._
 
 case class TrainDs(
                     month: Int,
-                    shop_id: Int,
-                    item_id: Int,
-                    item_price: Double,
-                    item_cnt: Double,
-                    cat_id: Int,
+                    shopItemId: ShopItemId,
+                    itemPrice: Double,
+                    itemCnt: Double,
+                    catId: Int,
                   )
+
+case class ShopItemId(
+                       shopId: Int,
+                       itemId: Int,
+                     )
 
 case class TestDs(
                    id: Int,
-                   shopId: Int,
-                   itemId: Int
+                   shopItemId: ShopItemId,
                  )
+
 
 case class SubmissionDs(
                          id: Int,
@@ -39,9 +43,9 @@ object SubmissionMean extends App {
    */
   object SubmissionJustMean {
     def run(): Unit = {
-      val trainData: Map[(Int, Int), Seq[TrainDs]] = TrainPreprocessing.read()
-        .groupBy(st => (st.item_id, st.shop_id))
-      val pm: Map[(Int, Int), Double] = propMapMean(trainData)
+      val trainData: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read()
+        .groupBy(st => st.shopItemId)
+      val pm: Map[ShopItemId, Double] = propMapMean(trainData)
       val tests = Util.readCsv("data/test.csv", toTestDs).map(toSubm(pm)(_))
       val outFileName = "data/subm_mean3.csv"
       Util.writeCsv(filename = outFileName,
@@ -67,7 +71,7 @@ object SubmissionMean extends App {
 
     def run(): Unit = {
       TrainPreprocessing.read(caching = false)
-        .filter(t => t.month == 3 && t.shop_id == 31 && t.item_id == 20949)
+        .filter(t => t.month == 3 && t.shopItemId == ShopItemId(31, 20949))
         .foreach(println(_))
 
     }

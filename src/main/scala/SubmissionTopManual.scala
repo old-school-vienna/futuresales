@@ -1,4 +1,4 @@
-import entelijan.viz.Viz.{DataRow, Diagram, MultiDiagram, XY}
+import entelijan.viz.Viz.{DataRow, Diagram, MultiDiagram, Range, XY}
 import entelijan.viz.{VizCreator, VizCreators}
 import Util._
 
@@ -17,20 +17,24 @@ object SubmissionTopManual extends App {
 
   object Analyse {
 
+    val itemCnt = 36
+    val cols = 6
+    val fontFact = 0.5
+
     def run(): Unit = {
-      val trainDataMap: Map[(Int, Int), Seq[TrainDs]] = TrainPreprocessing.read()
-        .groupBy(st => (st.item_id, st.shop_id))
-      val pm: Map[(Int, Int), Double] = propMapMean(trainDataMap)
+      val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read()
+        .groupBy(st => st.shopItemId)
+      val pm: Map[ShopItemId, Double] = propMapMean(trainDataMap)
       val tests: Seq[TestDs] = Util.readCsv("data/test.csv", toTestDs)
 
-      val idMap: Map[Int, (Int, Int)] = tests.map(t => (t.id, (t.shopId, t.itemId))).toMap
+      val idMap: Map[Int, ShopItemId] = tests.map(t => (t.id, t.shopItemId)).toMap
 
       def toTopItem(submissionDs: SubmissionDs): TopItem = {
-        val ids = idMap(submissionDs.id)
-        val vals = trainDataMap((ids._2, ids._1))
+        val ids: ShopItemId = idMap(submissionDs.id)
+        val vals = trainDataMap(ids)
         TopItem(id = submissionDs.id,
-          itemId = ids._2,
-          shopId = ids._1,
+          itemId = ids.itemId,
+          shopId = ids.shopId,
           itemCountMean = submissionDs.itemCnt,
           values = vals)
       }
@@ -38,13 +42,13 @@ object SubmissionTopManual extends App {
       val topItems: Seq[TopItem] = tests
         .map(toSubm(pm)(_))
         .sortBy(t => t.itemCnt)
-        .takeRight(9)
+        .takeRight(itemCnt)
         .reverse
         .map(toTopItem)
 
       def toValueTupels(values: Iterable[TrainDs]): Seq[(Int, Double)] = {
         values.toSeq
-          .map(t => (t.month, t.item_cnt))
+          .map(t => (t.month, t.itemCnt))
           .sortBy(_._1)
       }
 
@@ -67,12 +71,13 @@ object SubmissionTopManual extends App {
             val meanStr = "%.2f".format(ti.itemCountMean)
             Diagram[XY](
               id = "dia",
-              title = s"ID:${ti.id} shop:${ti.shopId} item:${ti.itemId} mean:$meanStr",
+              title = s"ID:${ti.id} ${ti.shopId} ${ti.itemId} $meanStr",
+//              yRange = Some(Range(Some(0.0),Some(1000.0))),
               dataRows = Seq(DataRow(data = toXy(ti.values))))
           }
         }
 
-        MultiDiagram(id = "topItems", columns = 3, fontFactor = 0.7, title = Some("Top Items"), diagrams = toDias)
+        MultiDiagram(id = "topItems", columns = cols, fontFactor = fontFact, title = Some("Top Items"), diagrams = toDias)
       }
 
       val c: VizCreator[XY] = VizCreators.gnuplot(clazz = classOf[XY])
