@@ -14,36 +14,38 @@ case class TopItem(
 object SubmissionTopManual extends App {
 
   Submission.run()
+
   //Analyse.run()
 
+  //noinspection DuplicatedCode
   object Submission {
 
     val proposedManual: Map[ShopItemId, Double] = Map(
-      (ShopItemId(31, 20949) -> 410), // mean:586.29
-      (ShopItemId(25, 20949) -> 410), // mean:421.85
-      (ShopItemId(28, 20949) -> 200), // mean:395.82
-      (ShopItemId(42, 20949) -> 480), // mean:309.24
-      (ShopItemId(12, 11373) -> 400), // mean:193.03
-      (ShopItemId(12, 11370) -> 200), // mean:181.26
-      (ShopItemId(57, 20949) -> 100), // mean:179.88
-      (ShopItemId(47, 20949) -> 150), // mean:133.24
-      (ShopItemId(22, 20949) -> 50), // mean:128.88
-      (ShopItemId(21, 20949) -> 150), // mean:127.50
-      (ShopItemId(46, 20949) -> 100), // mean:114.44
-      (ShopItemId(26, 20949) -> 100), // mean:106.59
-      (ShopItemId(6, 20949) -> 50), // mean:104.44
-      (ShopItemId(53, 20949) -> 70), // mean:104.12
-      (ShopItemId(56, 20949) -> 80), // mean:101.15
-      (ShopItemId(35, 20949) -> 60), // mean:101.00
-      (ShopItemId(16, 20949) -> 50), // mean:99.85
-      (ShopItemId(7, 20949) -> 50), // mean:97.68
-      (ShopItemId(14, 20949) -> 70), // mean:94.68
-      (ShopItemId(58, 20949) -> 70), // mean:86.12
+      ShopItemId(31, 20949) -> 410, // mean:586.29
+      ShopItemId(25, 20949) -> 410, // mean:421.85
+      ShopItemId(28, 20949) -> 200, // mean:395.82
+      ShopItemId(42, 20949) -> 480, // mean:309.24
+      ShopItemId(12, 11373) -> 400, // mean:193.03
+      ShopItemId(12, 11370) -> 200, // mean:181.26
+      ShopItemId(57, 20949) -> 100, // mean:179.88
+      ShopItemId(47, 20949) -> 150, // mean:133.24
+      ShopItemId(22, 20949) -> 50, // mean:128.88
+      ShopItemId(21, 20949) -> 150, // mean:127.50
+      ShopItemId(46, 20949) -> 100, // mean:114.44
+      ShopItemId(26, 20949) -> 100, // mean:106.59
+      ShopItemId(6, 20949) -> 50, // mean:104.44
+      ShopItemId(53, 20949) -> 70, // mean:104.12
+      ShopItemId(56, 20949) -> 80, // mean:101.15
+      ShopItemId(35, 20949) -> 60, // mean:101.00
+      ShopItemId(16, 20949) -> 50, // mean:99.85
+      ShopItemId(7, 20949) -> 50, // mean:97.68
+      ShopItemId(14, 20949) -> 70, // mean:94.68
+      ShopItemId(58, 20949) -> 70, // mean:86.12
     )
 
     def run(): Unit = {
-      val trainData: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read()
-        .groupBy(st => st.shopItemId)
+      val trainData: Map[ShopItemId, Seq[TrainDs]] =
+        TrainPreprocessing.read().groupBy(st => st.shopItemId)
       val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
 
       def proposed(id: ShopItemId): Double = {
@@ -65,9 +67,9 @@ object SubmissionTopManual extends App {
       val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read()
         .groupBy(st => st.shopItemId)
       val pm: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap)
-      val tests: Seq[TestDs] = Util.readCsv("data/test.csv", toTestDs)
+      val testData: Seq[TestDs] = readTestData()
 
-      val idMap: Map[Int, ShopItemId] = tests.map(t => (t.id, t.shopItemId)).toMap
+      val idMap: Map[Int, ShopItemId] = testData.map(t => (t.id, t.shopItemId)).toMap
 
       def toTopItem(submissionDs: SubmissionDs): TopItem = {
         val ids: ShopItemId = idMap(submissionDs.id)
@@ -79,8 +81,8 @@ object SubmissionTopManual extends App {
           values = vals)
       }
 
-      val topItems: Seq[TopItem] = tests
-      .map(toSubm(id => pm.getOrElse(id, 0.0))(_))
+      val topItems: Seq[TopItem] = testData
+        .map(toSubm(id => pm.getOrElse(id, 0.0))(_))
         .sortBy(t => t.itemCnt)
         .takeRight(itemCnt)
         .reverse

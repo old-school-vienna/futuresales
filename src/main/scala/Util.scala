@@ -22,6 +22,8 @@ object Util {
     }
   }
 
+  def readTestData():Seq[TestDs] = readCsv("data/test.csv", toTestDs)
+
   def writeCsv[T](filename: String,
                   trains: Iterable[T],
                   fMap: T => String,
@@ -75,8 +77,8 @@ object Util {
     sb.toString()
   }
 
-  def createSubmission(fProposedValues: ShopItemId => Double, outFileName: String) = {
-    val tests = Util.readCsv("data/test.csv", toTestDs)
+  def createSubmission(fProposedValues: ShopItemId => Double, outFileName: String):Unit = {
+    val tests = readTestData()
       .map(toSubm(fProposedValues)(_))
     Util.writeCsv(filename = outFileName,
       trains = tests,
@@ -84,7 +86,5 @@ object Util {
       header = Some("ID,item_cnt_month"))
     println(s"Wrote submissiun to $outFileName")
   }
-
-
 
 }
