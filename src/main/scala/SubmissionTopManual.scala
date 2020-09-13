@@ -43,15 +43,8 @@ object SubmissionTopManual extends App {
         .map(toTopItem)
 
       def toValueTupels(values: Iterable[TrainDs]): Seq[(Int, Double)] = {
-        def tt(month: Int, ds: Iterable[TrainDs]): (Int, Double) = {
-          val sum = ds.map(_.item_cnt).sum
-          (month, sum)
-        }
-
         values.toSeq
-          .groupBy(_.month)
-          .map(t => tt(t._1, t._2))
-          .toSeq
+          .map(t => (t.month, t.item_cnt))
           .sortBy(_._1)
       }
 

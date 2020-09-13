@@ -24,6 +24,21 @@ object SubmissionMean extends App {
 
   SubmissionJustMean.run()
 
+  /**
+   * mean over days only days with value
+   * subm_mean.csv
+   * 15 hours ago
+   * 0 seconds
+   * 1 seconds
+   * 1.27689
+   *
+   * mean over month only days with value
+   * subm_mean.csv
+   * just now
+   * 0 seconds
+   * 1 seconds
+   * 2.94945
+   */
   object SubmissionJustMean {
     def run(): Unit = {
       val trainData: Map[(Int, Int), Seq[TrainDs]] = TrainPreprocessing.read()
