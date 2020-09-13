@@ -15,11 +15,17 @@ object TrainPreprocessing {
                          catId: Int,
                        )
 
-  def read(): Seq[TrainDs] = {
+  def read(caching: Boolean = true): Seq[TrainDs] = {
     try {
-      val tr = readFromCache()
-      println("Successfully read from cache")
-      tr
+      if (caching) {
+        val tr = readFromCache()
+        println("Successfully read from cache")
+        tr
+      } else {
+        val tr = readTrain()
+        println("Caching disabled. Successfully read from original")
+        tr
+      }
     } catch {
       case _: FileNotFoundException =>
         val tr = readTrain()
@@ -84,11 +90,9 @@ object TrainPreprocessing {
     Util.readCsv(filename, readIds).toMap
   }
 
-  private def readSalesTrainCsv[K, T](
+  private def readSalesTrainCsv(
                                        filename: String,
-                                       fKey: SalesTrain => K,
-                                       fAgg: Iterable[SalesTrain] => T,
-                                       catMapping: Map[Int, Int]): Seq[T] = {
+                                       catMapping: Map[Int, Int]): Seq[TrainDs] = {
 
     def toSailsTrain(line: Array[String]): SalesTrain = {
       SalesTrain(
@@ -100,15 +104,6 @@ object TrainPreprocessing {
         itemCntDay = line(5).toDouble,
         catId = catMapping(line(3).toInt))
     }
-
-    Util.readCsv(filename, toSailsTrain)
-      .to(LazyList)
-      .groupBy(st => fKey(st))
-      .toSeq
-      .map(t => fAgg(t._2))
-  }
-
-  private def readTrain(): Seq[TrainDs] = {
 
     def toMonthShopItemSales(sales: Iterable[SalesTrain]): TrainDs = {
       val sSeq = sales.toSeq
@@ -123,14 +118,16 @@ object TrainPreprocessing {
       )
     }
 
-    def monthShopItemKey(st: SalesTrain): Ordered[_] = (st.month, st.itemId, st.shopId, st.catId)
+    Util.readCsv(filename, toSailsTrain)
+      .groupBy(st => (st.month, st.itemId, st.shopId, st.catId))
+      .map(t => toMonthShopItemSales(t._2))
+      .toSeq
+  }
 
+  private def readTrain(): Seq[TrainDs] = {
     val catMap = readCategories("data/items.csv")
-
     readSalesTrainCsv(
       filename= "data/sales_train.csv",
-      fKey= monthShopItemKey,
-      fAgg = toMonthShopItemSales,
       catMapping = catMap)
   }
 

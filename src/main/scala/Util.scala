@@ -43,4 +43,37 @@ object Util {
       bw.close()
     }
   }
+  def propMapMean(trainData: Map[(Int, Int), Seq[TrainDs]]): Map[(Int, Int), Double] = {
+
+    def meanItems(items: Iterable[TrainDs]): Double = {
+      val seqItems = items.toSeq
+      val mean = seqItems.map(i => math.max(0, i.item_cnt)).sum / seqItems.size
+      mean
+    }
+
+    trainData.map(t => (t._1, meanItems(t._2)))
+  }
+
+  def toTestDs(line: Array[String]): TestDs = {
+    TestDs(id = line(0).toInt,
+      shopId = line(1).toInt,
+      itemId = line(2).toInt
+    )
+  }
+
+  def toSubm(probMap: Map[(Int, Int), Double])(t: TestDs): SubmissionDs = {
+    val pred: Double = probMap.getOrElse((t.itemId, t.shopId), 0)
+    SubmissionDs(t.id, pred)
+  }
+
+
+  def toSubmStr(subm: SubmissionDs): String = {
+    val sb = new StringBuilder()
+    sb.append(subm.id)
+    sb.append(",")
+    sb.append("%.2f".format(subm.itemCnt))
+    sb.toString()
+  }
+
+
 }

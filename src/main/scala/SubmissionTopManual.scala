@@ -1,7 +1,6 @@
-import SubmissionMean.{_toSubm, propMapMean, toTestDs}
-import entelijan.viz.Viz.{DataRow, Dia, Diagram, MultiDiagram, XY}
+import entelijan.viz.Viz.{DataRow, Diagram, MultiDiagram, XY}
 import entelijan.viz.{VizCreator, VizCreators}
-import entelijan.viz.examples.Multiplot.{dias, mdia}
+import Util._
 
 case class TopItem(
                     id: Int,
@@ -15,7 +14,6 @@ case class TopItem(
 object SubmissionTopManual extends App {
 
   Analyse.run()
-
 
   object Analyse {
 
@@ -38,7 +36,7 @@ object SubmissionTopManual extends App {
       }
 
       val topItems: Seq[TopItem] = tests
-        .map(_toSubm(pm)(_))
+        .map(toSubm(pm)(_))
         .sortBy(t => t.itemCnt)
         .takeRight(9)
         .reverse
@@ -72,7 +70,7 @@ object SubmissionTopManual extends App {
         }
 
         def toDias: Seq[Diagram[XY]] = {
-          topItems.map{ti =>
+          topItems.map { ti =>
             val meanStr = "%.2f".format(ti.itemCountMean)
             Diagram[XY](
               id = "dia",
@@ -81,7 +79,7 @@ object SubmissionTopManual extends App {
           }
         }
 
-        MultiDiagram(id = "topItems", columns = 3, fontFactor=0.7, title = Some("Top Items"), diagrams = toDias)
+        MultiDiagram(id = "topItems", columns = 3, fontFactor = 0.7, title = Some("Top Items"), diagrams = toDias)
       }
 
       val c: VizCreator[XY] = VizCreators.gnuplot(clazz = classOf[XY])
