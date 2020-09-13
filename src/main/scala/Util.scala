@@ -44,7 +44,7 @@ object Util {
     }
   }
 
-  def propMapMean(trainData: Map[ShopItemId, Seq[TrainDs]]): Map[ShopItemId, Double] = {
+  def proposedValuesMean(trainData: Map[ShopItemId, Seq[TrainDs]]): Map[ShopItemId, Double] = {
 
     def meanItems(items: Iterable[TrainDs]): Double = {
       val seqItems = items.toSeq
@@ -61,8 +61,8 @@ object Util {
     )
   }
 
-  def toSubm(probMap: Map[ShopItemId, Double])(t: TestDs): SubmissionDs = {
-    val pred: Double = probMap.getOrElse(t.shopItemId, 0)
+  def toSubm(fProposedValues: ShopItemId => Double)(t: TestDs): SubmissionDs = {
+    val pred: Double = fProposedValues(t.shopItemId)
     SubmissionDs(t.id, pred)
   }
 
@@ -74,6 +74,17 @@ object Util {
     sb.append("%.2f".format(subm.itemCnt))
     sb.toString()
   }
+
+  def createSubmission(fProposedValues: ShopItemId => Double, outFileName: String) = {
+    val tests = Util.readCsv("data/test.csv", toTestDs)
+      .map(toSubm(fProposedValues)(_))
+    Util.writeCsv(filename = outFileName,
+      trains = tests,
+      fMap = toSubmStr,
+      header = Some("ID,item_cnt_month"))
+    println(s"Wrote submissiun to $outFileName")
+  }
+
 
 
 }

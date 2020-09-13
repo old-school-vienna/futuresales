@@ -1,6 +1,6 @@
-import entelijan.viz.Viz.{DataRow, Diagram, MultiDiagram, Range, XY}
-import entelijan.viz.{VizCreator, VizCreators}
 import Util._
+import entelijan.viz.Viz.{DataRow, Diagram, MultiDiagram, XY}
+import entelijan.viz.{VizCreator, VizCreators}
 
 case class TopItem(
                     id: Int,
@@ -13,18 +13,58 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  Analyse.run()
+  Submission.run()
+  //Analyse.run()
+
+  object Submission {
+
+    val proposedManual: Map[ShopItemId, Double] = Map(
+      (ShopItemId(31, 20949) -> 410), // mean:586.29
+      (ShopItemId(25, 20949) -> 410), // mean:421.85
+      (ShopItemId(28, 20949) -> 200), // mean:395.82
+      (ShopItemId(42, 20949) -> 480), // mean:309.24
+      (ShopItemId(12, 11373) -> 400), // mean:193.03
+      (ShopItemId(12, 11370) -> 200), // mean:181.26
+      (ShopItemId(57, 20949) -> 100), // mean:179.88
+      (ShopItemId(47, 20949) -> 150), // mean:133.24
+      (ShopItemId(22, 20949) -> 50), // mean:128.88
+      (ShopItemId(21, 20949) -> 150), // mean:127.50
+      (ShopItemId(46, 20949) -> 100), // mean:114.44
+      (ShopItemId(26, 20949) -> 100), // mean:106.59
+      (ShopItemId(6, 20949) -> 50), // mean:104.44
+      (ShopItemId(53, 20949) -> 70), // mean:104.12
+      (ShopItemId(56, 20949) -> 80), // mean:101.15
+      (ShopItemId(35, 20949) -> 60), // mean:101.00
+      (ShopItemId(16, 20949) -> 50), // mean:99.85
+      (ShopItemId(7, 20949) -> 50), // mean:97.68
+      (ShopItemId(14, 20949) -> 70), // mean:94.68
+      (ShopItemId(58, 20949) -> 70), // mean:86.12
+    )
+
+    def run(): Unit = {
+      val trainData: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read()
+        .groupBy(st => st.shopItemId)
+      val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
+
+      def proposed(id: ShopItemId): Double = {
+        proposedManual.getOrElse(id, pm.getOrElse(id, 0.0))
+      }
+
+      createSubmission(proposed, "data/subm_top_manual.csv")
+    }
+
+  }
 
   object Analyse {
 
-    val itemCnt = 36
-    val cols = 6
+    val itemCnt = 20
+    val cols = 5
     val fontFact = 0.5
 
     def run(): Unit = {
       val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read()
         .groupBy(st => st.shopItemId)
-      val pm: Map[ShopItemId, Double] = propMapMean(trainDataMap)
+      val pm: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap)
       val tests: Seq[TestDs] = Util.readCsv("data/test.csv", toTestDs)
 
       val idMap: Map[Int, ShopItemId] = tests.map(t => (t.id, t.shopItemId)).toMap
@@ -40,7 +80,7 @@ object SubmissionTopManual extends App {
       }
 
       val topItems: Seq[TopItem] = tests
-        .map(toSubm(pm)(_))
+      .map(toSubm(id => pm.getOrElse(id, 0.0))(_))
         .sortBy(t => t.itemCnt)
         .takeRight(itemCnt)
         .reverse
@@ -53,8 +93,10 @@ object SubmissionTopManual extends App {
       }
 
       topItems
-        .map(t => s"${t.id} ${t.itemCountMean} ${toValueTupels(t.values)}")
-        .foreach(println(_))
+        .foreach { t =>
+          val mstr = "%.2f".format(t.itemCountMean)
+          println(s"    (ShopItemId(${t.shopId}, ${t.itemId}) -> 0.0), // mean:$mstr")
+        }
 
       def toMultiDiagram(topItems: Seq[TopItem]): MultiDiagram[XY] = {
 
@@ -72,7 +114,7 @@ object SubmissionTopManual extends App {
             Diagram[XY](
               id = "dia",
               title = s"ID:${ti.id} ${ti.shopId} ${ti.itemId} $meanStr",
-//              yRange = Some(Range(Some(0.0),Some(1000.0))),
+              //              yRange = Some(Range(Some(0.0),Some(1000.0))),
               dataRows = Seq(DataRow(data = toXy(ti.values))))
           }
         }

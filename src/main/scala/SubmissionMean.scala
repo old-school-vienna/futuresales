@@ -45,14 +45,8 @@ object SubmissionMean extends App {
     def run(): Unit = {
       val trainData: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read()
         .groupBy(st => st.shopItemId)
-      val pm: Map[ShopItemId, Double] = propMapMean(trainData)
-      val tests = Util.readCsv("data/test.csv", toTestDs).map(toSubm(pm)(_))
-      val outFileName = "data/subm_mean3.csv"
-      Util.writeCsv(filename = outFileName,
-        trains = tests,
-        fMap = toSubmStr,
-        header = Some("ID,item_cnt_month"))
-      println(s"Wrote submissiun to $outFileName")
+      val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
+      createSubmission(id => pm.getOrElse(id, 0.0), "data/subm_mean.csv")
     }
 
   }
