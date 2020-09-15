@@ -13,9 +13,9 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  Submission.runAllZeros()
+  //Submission.runAllZeros()
 
-  //Analyse.
+  Analyse.run()
 
   //noinspection DuplicatedCode
   object Submission {

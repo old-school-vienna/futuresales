@@ -1,8 +1,9 @@
 import java.io.FileNotFoundException
 
+import Util.Situation
+
 object TrainPreprocessing {
 
-  private val cacheFilename = "data/sales_train_enriched.csv"
   private val separator = ","
 
   case class SalesTrain(
@@ -15,29 +16,29 @@ object TrainPreprocessing {
                          catId: Int,
                        )
 
-  def read(caching: Boolean = true): Seq[TrainDs] = {
+  def read(situation: Situation = Situation.Full, caching: Boolean = true): Seq[TrainDs] = {
     try {
       if (caching) {
-        val tr = readFromCache()
-        println("Successfully read from cache")
+        val tr = readFromCache(situation)
+        println(s"Successfully read from cache $situation")
         tr
       } else {
-        val tr = readTrain()
-        println("Caching disabled. Successfully read from original")
+        val tr = readTrain(situation)
+        println(s"Caching disabled. Successfully read from original $situation")
         tr
       }
     } catch {
       case _: FileNotFoundException =>
-        val tr = readTrain()
-        println("Successfully read from original")
-        writeToCache(tr)
-        println("Successfully wrote to cache")
+        val tr = readTrain(situation)
+        println(s"Successfully read from original $situation")
+        writeToCache(tr, situation)
+        println(s"Successfully wrote to cache $situation")
         tr
     }
   }
 
 
-  private def readFromCache(): Seq[TrainDs] = {
+  private def readFromCache(situation: Situation): Seq[TrainDs] = {
 
     def lineToTrain(line: Array[String]): TrainDs = {
       TrainDs(month = line(0).toInt,
@@ -48,10 +49,14 @@ object TrainPreprocessing {
       )
     }
 
-    Util.readCsv(cacheFilename, lineToTrain, headerLines = 0)
+    val full = Util.readCsv(filename(situation), lineToTrain, headerLines = 0)
+    situation match {
+      case Situation.Full =>full
+      case Situation.Local =>full.filter(t => t.month != 33)
+    }
   }
 
-  private def writeToCache(trains: Iterable[TrainDs]): Unit = {
+  private def writeToCache(trains: Iterable[TrainDs], situation: Situation): Unit = {
 
     def trainToLine(t: TrainDs): String = {
       val sb = new StringBuilder
@@ -70,7 +75,7 @@ object TrainPreprocessing {
       sb.toString()
     }
 
-    Util.writeCsv(cacheFilename, trains, trainToLine)
+    Util.writeCsv(filename(situation), trains, trainToLine)
   }
 
   private def readCategories(filename: String): Map[Int, Int] = {
@@ -122,11 +127,17 @@ object TrainPreprocessing {
       .toSeq
   }
 
-  private def readTrain(): Seq[TrainDs] = {
+  private def readTrain(situation: Situation): Seq[TrainDs] = {
     val catMap = readCategories("data/items.csv")
     readSalesTrainCsv(
       filename = "data/sales_train.csv",
       catMapping = catMap)
   }
 
+  private def filename(situation: Situation) = {
+    situation match {
+      case Situation.Full => "data/sales_train_cached_full.csv"
+      case Situation.Local => "data/sales_train_cached_local.csv"
+    }
+  }
 }

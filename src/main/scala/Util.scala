@@ -4,6 +4,13 @@ import scala.io.Source
 
 object Util {
 
+  sealed trait Situation
+
+  object Situation {
+    final case object Full extends Situation
+    final case object Local extends Situation
+  }
+
   def readCsv[T](
                   filename: String,
                   fMap: Array[String] => T,
