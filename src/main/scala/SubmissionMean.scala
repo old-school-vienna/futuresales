@@ -26,7 +26,7 @@ case class SubmissionDs(
 
 object SubmissionMean extends App {
 
-  SubmissionJustMean.run()
+  SubmissionJustMean.run(Situation.Full)
 
   /**
    * mean over days only days with value
@@ -42,11 +42,11 @@ object SubmissionMean extends App {
    * 2.04647
    */
   object SubmissionJustMean {
-    def run(): Unit = {
-      val trainData: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read()
+    def run(situation: Situation): Unit = {
+      val trainData: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read(situation)
         .groupBy(st => st.shopItemId)
       val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
-      createSubmission(id => pm.getOrElse(id, 0.0), "data/subm_mean.csv")
+      createSubmission(id => pm.getOrElse(id, 0.0), situation, "mean")
     }
 
   }
@@ -63,8 +63,8 @@ object SubmissionMean extends App {
   object AnalyseMultiItemsPerMonth {
 
 
-    def run(): Unit = {
-      TrainPreprocessing.read(caching = false)
+    def run(situation: Situation): Unit = {
+      TrainPreprocessing.read(caching = false, situation = situation)
         .filter(t => t.month == 3 && t.shopItemId == ShopItemId(31, 20949))
         .foreach(println(_))
 

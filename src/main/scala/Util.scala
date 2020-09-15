@@ -84,14 +84,18 @@ object Util {
     sb.toString()
   }
 
-  def createSubmission(fProposedValues: ShopItemId => Double, outFileName: String):Unit = {
+  def createSubmission(fProposedValues: ShopItemId => Double, situation: Situation,  name: String):Unit = {
     val tests = readTestData()
       .map(toSubm(fProposedValues)(_))
+    val outFileName = situation match {
+      case Situation.Full => s"data/submission_$name.csv"
+      case Situation.Local =>s"data/submission_local_$name.csv"
+    }
     Util.writeCsv(filename = outFileName,
       trains = tests,
       fMap = toSubmStr,
       header = Some("ID,item_cnt_month"))
-    println(s"Wrote submissiun to $outFileName")
+    println(s"Wrote submission to $outFileName")
   }
 
 }

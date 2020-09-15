@@ -13,11 +13,9 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  //Submission.runAllZeros()
+  Submission.runAllZeros(Situation.Local)
+  //Analyse.run(situation = Situation.Local)
 
-  Analyse.run()
-
-  //noinspection DuplicatedCode
   object Submission {
 
     val proposedManual: Map[ShopItemId, Double] = Map(
@@ -52,35 +50,32 @@ object SubmissionTopManual extends App {
       proposedManual.keys.map(k => formatMan(k)).foreach(s => println(s))
     }
 
-    def runZeros(): Unit = {
+    def runZeros(situation: Situation): Unit = {
       def proposed(id: ShopItemId): Double = {
-        if (proposedManual.isDefinedAt(id)) {
-          proposedManual.getOrElse(id, 0.0)
-        }
         proposedManual.getOrElse(id, 0.0)
       }
 
-      createSubmission(proposed, "data/subm_zeros_top_manual.csv")
+      createSubmission(proposed, situation, "zeros_top_manual")
     }
 
-    def runAllZeros(): Unit = {
+    def runAllZeros(situation: Situation): Unit = {
       def proposed(id: ShopItemId): Double = {
         0.0
       }
 
-      createSubmission(proposed, "data/subm_all_zeros_ww.csv")
+      createSubmission(proposed, situation, "all_zeros_ww")
     }
 
-    def runMean(): Unit = {
+    def runMean(situation: Situation): Unit = {
       val trainData: Map[ShopItemId, Seq[TrainDs]] =
-        TrainPreprocessing.read().groupBy(st => st.shopItemId)
+        TrainPreprocessing.read(situation).groupBy(st => st.shopItemId)
       val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
 
       def proposed(id: ShopItemId): Double = {
         proposedManual.getOrElse(id, pm.getOrElse(id, 0.0))
       }
 
-      createSubmission(proposed, "data/subm_top_manual.csv")
+      createSubmission(proposed, situation, "top_manual")
     }
 
   }
@@ -91,8 +86,8 @@ object SubmissionTopManual extends App {
     val cols = 5
     val fontFact = 0.5
 
-    def run(): Unit = {
-      val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read()
+    def run(situation: Situation): Unit = {
+      val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read(situation)
         .groupBy(st => st.shopItemId)
       val pm: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap)
       val testData: Seq[TestDs] = readTestData()

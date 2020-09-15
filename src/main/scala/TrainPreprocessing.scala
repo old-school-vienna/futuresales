@@ -16,7 +16,7 @@ object TrainPreprocessing {
                          catId: Int,
                        )
 
-  def read(situation: Situation = Situation.Full, caching: Boolean = true): Seq[TrainDs] = {
+  def read(situation: Situation, caching: Boolean = true): Seq[TrainDs] = {
     try {
       if (caching) {
         val tr = readFromCache(situation)
