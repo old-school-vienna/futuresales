@@ -13,9 +13,9 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  Submission.run()
+  Submission.runAllZeros()
 
-  //Analyse.run()
+  //Analyse.
 
   //noinspection DuplicatedCode
   object Submission {
@@ -43,7 +43,35 @@ object SubmissionTopManual extends App {
       ShopItemId(58, 20949) -> 70, // mean:86.12
     )
 
-    def run(): Unit = {
+
+    def runManualInfo(): Unit = {
+      def formatMan(k: ShopItemId): String = {
+        s"${k.shopId} ${k.itemId} ${proposedManual(k)}"
+      }
+
+      proposedManual.keys.map(k => formatMan(k)).foreach(s => println(s))
+    }
+
+    def runZeros(): Unit = {
+      def proposed(id: ShopItemId): Double = {
+        if (proposedManual.isDefinedAt(id)) {
+          proposedManual.getOrElse(id, 0.0)
+        }
+        proposedManual.getOrElse(id, 0.0)
+      }
+
+      createSubmission(proposed, "data/subm_zeros_top_manual.csv")
+    }
+
+    def runAllZeros(): Unit = {
+      def proposed(id: ShopItemId): Double = {
+        0.0
+      }
+
+      createSubmission(proposed, "data/subm_all_zeros_ww.csv")
+    }
+
+    def runMean(): Unit = {
       val trainData: Map[ShopItemId, Seq[TrainDs]] =
         TrainPreprocessing.read().groupBy(st => st.shopItemId)
       val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
