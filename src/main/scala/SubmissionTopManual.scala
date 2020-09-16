@@ -13,8 +13,8 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  Submission.runAllZeros(Situation.Local)
-  //Analyse.run(situation = Situation.Local)
+  //Submission.runAllZeros(Situation.Local)
+  Analyse.run(situation = Situation.Local)
 
   object Submission {
 
@@ -127,7 +127,11 @@ object SubmissionTopManual extends App {
 
         def toXy(vals: Iterable[TrainDs]): Seq[XY] = {
           val vts: Map[Int, Double] = toValueTupels(vals).toMap
-          for (x <- 0 to 33) yield {
+          val maxMonth = situation match {
+            case Situation.Full => 33
+            case Situation.Local => 32
+          }
+          for (x <- 0 to maxMonth) yield {
             val y: Double = vts.getOrElse(x, 0.0)
             XY(x.toDouble, y)
           }
@@ -144,7 +148,7 @@ object SubmissionTopManual extends App {
           }
         }
 
-        MultiDiagram(id = "topItems", columns = cols, fontFactor = fontFact, title = Some("Top Items"), diagrams = toDias)
+        MultiDiagram(id = s"topItems_$situation", columns = cols, fontFactor = fontFact, title = Some("Top Items"), diagrams = toDias)
       }
 
       val c: VizCreator[XY] = VizCreators.gnuplot(clazz = classOf[XY])
