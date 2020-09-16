@@ -13,8 +13,13 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
+  val tester = LocalTester
+
+  Submission.runMean(Situation.Local)
+
+  //Submission.runAllMean(Situation.Local)
   //Submission.runAllZeros(Situation.Local)
-  Analyse.run(situation = Situation.Local)
+  //Analyse.run(situation = Situation.Local)
 
   object Submission {
 
@@ -55,7 +60,7 @@ object SubmissionTopManual extends App {
         proposedManual.getOrElse(id, 0.0)
       }
 
-      createSubmission(proposed, situation, "zeros_top_manual")
+      createFileOrTest(situation, "zeros_and_manual", proposed)
     }
 
     def runAllZeros(situation: Situation): Unit = {
@@ -63,19 +68,43 @@ object SubmissionTopManual extends App {
         0.0
       }
 
-      createSubmission(proposed, situation, "all_zeros_ww")
+      createFileOrTest(situation, "all_zero", proposed)
     }
 
     def runMean(situation: Situation): Unit = {
       val trainData: Map[ShopItemId, Seq[TrainDs]] =
         TrainPreprocessing.read(situation).groupBy(st => st.shopItemId)
+
       val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
 
       def proposed(id: ShopItemId): Double = {
         proposedManual.getOrElse(id, pm.getOrElse(id, 0.0))
       }
 
-      createSubmission(proposed, situation, "top_manual")
+      createFileOrTest(situation, "mean_with_manual", proposed)
+    }
+
+    def runAllMean(situation: Situation): Unit = {
+      val trainData: Map[ShopItemId, Seq[TrainDs]] =
+        TrainPreprocessing.read(situation).groupBy(st => st.shopItemId)
+
+      def proposed(id: ShopItemId): Double = {
+        proposedManual.getOrElse(id, 0.0)
+      }
+
+      createFileOrTest(situation, "all_mean", proposed)
+    }
+
+    private def createFileOrTest(situation: Situation,
+                                 name: String,
+                                 proposed: ShopItemId => Double): Unit = {
+      situation match {
+        case Situation.Full => createSubmissionFile(proposed, situation, name)
+        case Situation.Local =>
+          val submission = createSubmission(proposed)
+          val mse = tester.test(submission)
+          println(f"run $name mse: $mse%.2f")
+      }
     }
 
   }

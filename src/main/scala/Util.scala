@@ -84,9 +84,8 @@ object Util {
     sb.toString()
   }
 
-  def createSubmission(fProposedValues: ShopItemId => Double, situation: Situation,  name: String):Unit = {
-    val tests = readTestData()
-      .map(toSubm(fProposedValues)(_))
+  def createSubmissionFile(fProposedValues: ShopItemId => Double, situation: Situation, name: String):Unit = {
+    val tests = createSubmission(fProposedValues)
     val outFileName = situation match {
       case Situation.Full => s"data/submission_$name.csv"
       case Situation.Local =>s"data/submission_local_$name.csv"
@@ -98,4 +97,8 @@ object Util {
     println(s"Wrote submission to $outFileName")
   }
 
+  def createSubmission(fProposedValues: ShopItemId => Double): Seq[SubmissionDs] = {
+    readTestData()
+      .map(toSubm(fProposedValues)(_))
+  }
 }
