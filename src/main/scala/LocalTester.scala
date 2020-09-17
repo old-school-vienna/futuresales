@@ -37,9 +37,7 @@ object LocalTester {
     }
 
     val n = data.size
-    val ds = data.map(d => squaredError(d))
-    val sum =   ds.sum
-    sum / n
+    data.map(d => squaredError(d)).sum / n
   }
 
 }
