@@ -16,9 +16,10 @@ object SubmissionTopManual extends App {
   val tester = LocalTester
 
   Submission.runMean(Situation.Local)
+  Submission.runZeros(Situation.Local)
+  Submission.runAllMean(Situation.Local)
+  Submission.runAllZeros(Situation.Local)
 
-  //Submission.runAllMean(Situation.Local)
-  //Submission.runAllZeros(Situation.Local)
   //Analyse.run(situation = Situation.Local)
 
   object Submission {
@@ -73,7 +74,7 @@ object SubmissionTopManual extends App {
 
     def runMean(situation: Situation): Unit = {
       val trainData: Map[ShopItemId, Seq[TrainDs]] =
-        TrainPreprocessing.read(situation).groupBy(st => st.shopItemId)
+        DataProvider.readSalesTrain(situation).groupBy(st => st.shopItemId)
 
       val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
 
@@ -86,7 +87,7 @@ object SubmissionTopManual extends App {
 
     def runAllMean(situation: Situation): Unit = {
       val trainData: Map[ShopItemId, Seq[TrainDs]] =
-        TrainPreprocessing.read(situation).groupBy(st => st.shopItemId)
+        DataProvider.readSalesTrain(situation).groupBy(st => st.shopItemId)
 
       def proposed(id: ShopItemId): Double = {
         proposedManual.getOrElse(id, 0.0)
@@ -116,10 +117,10 @@ object SubmissionTopManual extends App {
     val fontFact = 0.5
 
     def run(situation: Situation): Unit = {
-      val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = TrainPreprocessing.read(situation)
+      val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = DataProvider.readSalesTrain(situation)
         .groupBy(st => st.shopItemId)
       val pm: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap)
-      val testData: Seq[TestDs] = readTestData()
+      val testData: Seq[TestDs] = DataProvider.readTestData()
 
       val idMap: Map[Int, ShopItemId] = testData.map(t => (t.id, t.shopItemId)).toMap
 

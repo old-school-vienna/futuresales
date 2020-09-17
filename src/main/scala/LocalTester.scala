@@ -1,8 +1,8 @@
-import Util.{Situation, readTestData}
+import Util.Situation
 
 object LocalTester {
 
-  val shopItemIdMap: Map[ShopItemId, Int] = readTestData().map(td => (td.shopItemId, td.id)).toMap
+  val shopItemIdMap: Map[ShopItemId, Int] = DataProvider.readTestData().map(td => (td.shopItemId, td.id)).toMap
 
   def calcTruth(id: ShopItemId, values: Seq[TrainDs]): Option[SubmissionDs] = {
     val last = values.filter(t => t.month == 23)
@@ -19,7 +19,7 @@ object LocalTester {
   }
 
   def initTruth: Map[Int, Double] = {
-    TrainPreprocessing.read(situation = Situation.Local)
+    DataProvider.readSalesTrain(situation = Situation.Local)
       .groupBy(t => t.shopItemId)
       .flatMap { case (id, values) => calcTruth(id, values) }
       .map(s => (s.id, s.itemCnt))

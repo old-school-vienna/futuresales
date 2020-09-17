@@ -29,8 +29,6 @@ object Util {
     }
   }
 
-  def readTestData():Seq[TestDs] = readCsv("data/test.csv", toTestDs)
-
   def writeCsv[T](filename: String,
                   trains: Iterable[T],
                   fMap: T => String,
@@ -64,12 +62,6 @@ object Util {
     trainData.map(t => (t._1, meanItems(t._2)))
   }
 
-  def toTestDs(line: Array[String]): TestDs = {
-    TestDs(id = line(0).toInt,
-      shopItemId = ShopItemId(line(1).toInt, line(2).toInt),
-    )
-  }
-
   def toSubm(fProposedValues: ShopItemId => Double)(t: TestDs): SubmissionDs = {
     val pred: Double = fProposedValues(t.shopItemId)
     SubmissionDs(t.id, pred)
@@ -98,7 +90,7 @@ object Util {
   }
 
   def createSubmission(fProposedValues: ShopItemId => Double): Seq[SubmissionDs] = {
-    readTestData()
+    DataProvider.readTestData()
       .map(toSubm(fProposedValues)(_))
   }
 }
