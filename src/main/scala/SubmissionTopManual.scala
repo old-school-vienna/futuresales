@@ -15,14 +15,31 @@ object SubmissionTopManual extends App {
 
   val tester = LocalTester
 
-  Submission.runMean(Situation.Local)
-  Submission.runZeros(Situation.Local)
-  Submission.runAllMean(Situation.Local)
-  Submission.runAllZeros(Situation.Local)
-
+  Submission.runTestAll()
+  //Submission.runZeros(Situation.Local)
+  //Submission.runAllMean(Situation.Local)
+  //Submission.runAllZeros(Situation.Local)
   //Analyse.run(situation = Situation.Local)
 
   object Submission {
+
+    private def proposedMeanMap(situation: Situation) = {
+      val trainData = trainDataGroupedByShopItemId(situation)
+      val proposedMean: Map[ShopItemId, Double] = proposedValuesMean(trainData)
+      proposedMean
+    }
+
+    def proposedAllMean(proposedMeanMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
+      proposedMeanMap.getOrElse(id, 0.0)
+    }
+
+    def proposedManualMean(proposedMeanMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
+      proposedManual.getOrElse(id, proposedMeanMap.getOrElse(id, 0.0))
+    }
+
+    def proposedAllZero(id: ShopItemId): Double = 0.0
+
+    def proposedManualZero(id: ShopItemId): Double = proposedManual.getOrElse(id, 0.0)
 
     val proposedManual: Map[ShopItemId, Double] = Map(
       ShopItemId(31, 20949) -> 410, // mean:586.29
@@ -47,53 +64,48 @@ object SubmissionTopManual extends App {
       ShopItemId(58, 20949) -> 70, // mean:86.12
     )
 
+    def runTestAll(): Unit = {
+      val local = Situation.Local
+      val pmm = proposedMeanMap(local)
+      println("created mean")
+      Seq(
+        ("all zero", tester.test(createSubmission(proposedAllZero))),
+        ("manual and zero", tester.test(createSubmission(proposedManualZero))),
+        ("all mean", tester.test(createSubmission(proposedAllMean(pmm)))),
+        ("manual and mean", tester.test(createSubmission(proposedManualMean(pmm)))),
+      ).map { case (t, v) => "%50s %.2f".format(t, v) }
+        .foreach(println(_))
+
+
+    }
 
     def runManualInfo(): Unit = {
-      def formatMan(k: ShopItemId): String = {
-        s"${k.shopId} ${k.itemId} ${proposedManual(k)}"
-      }
+      def formatMan(k: ShopItemId): String = s"${k.shopId} ${k.itemId} ${proposedManual(k)}"
 
       proposedManual.keys.map(k => formatMan(k)).foreach(s => println(s))
     }
 
     def runZeros(situation: Situation): Unit = {
-      def proposed(id: ShopItemId): Double = {
-        proposedManual.getOrElse(id, 0.0)
-      }
-
-      createFileOrTest(situation, "zeros_and_manual", proposed)
+      createFileOrTest(situation, "zeros_and_manual", proposedManualZero)
     }
 
     def runAllZeros(situation: Situation): Unit = {
-      def proposed(id: ShopItemId): Double = {
-        0.0
-      }
-
-      createFileOrTest(situation, "all_zero", proposed)
+      createFileOrTest(situation, "all_zero", proposedAllZero)
     }
 
-    def runMean(situation: Situation): Unit = {
-      val trainData: Map[ShopItemId, Seq[TrainDs]] =
-        DataProvider.readSalesTrain(situation).groupBy(st => st.shopItemId)
 
-      val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
-
-      def proposed(id: ShopItemId): Double = {
-        proposedManual.getOrElse(id, pm.getOrElse(id, 0.0))
-      }
-
-      createFileOrTest(situation, "mean_with_manual", proposed)
+    def runManualMean(situation: Situation): Unit = {
+      val pmm = proposedMeanMap(situation)
+      createFileOrTest(situation, "mean_with_manual", proposedManualMean(pmm))
     }
 
     def runAllMean(situation: Situation): Unit = {
-      val trainData: Map[ShopItemId, Seq[TrainDs]] =
-        DataProvider.readSalesTrain(situation).groupBy(st => st.shopItemId)
+      val pmm = proposedMeanMap(situation)
+      createFileOrTest(situation, "all_mean", proposedAllMean(pmm))
+    }
 
-      def proposed(id: ShopItemId): Double = {
-        proposedManual.getOrElse(id, 0.0)
-      }
-
-      createFileOrTest(situation, "all_mean", proposed)
+    private def test(proposed: ShopItemId => Double): Double = {
+      tester.test(createSubmission(proposed))
     }
 
     private def createFileOrTest(situation: Situation,
@@ -117,25 +129,24 @@ object SubmissionTopManual extends App {
     val fontFact = 0.5
 
     def run(situation: Situation): Unit = {
-      val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = DataProvider.readSalesTrain(situation)
-        .groupBy(st => st.shopItemId)
-      val pm: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap)
+      val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = trainDataGroupedByShopItemId(situation)
+      val proposedMean: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap)
       val testData: Seq[TestDs] = DataProvider.readTestData()
 
       val idMap: Map[Int, ShopItemId] = testData.map(t => (t.id, t.shopItemId)).toMap
 
       def toTopItem(submissionDs: SubmissionDs): TopItem = {
         val ids: ShopItemId = idMap(submissionDs.id)
-        val vals = trainDataMap(ids)
+        val values = trainDataMap(ids)
         TopItem(id = submissionDs.id,
           itemId = ids.itemId,
           shopId = ids.shopId,
           itemCountMean = submissionDs.itemCnt,
-          values = vals)
+          values = values)
       }
 
       val topItems: Seq[TopItem] = testData
-        .map(toSubm(id => pm.getOrElse(id, 0.0))(_))
+        .map(toSubm(id => proposedMean.getOrElse(id, 0.0))(_))
         .sortBy(t => t.itemCnt)
         .takeRight(itemCnt)
         .reverse

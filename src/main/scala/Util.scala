@@ -11,6 +11,10 @@ object Util {
     final case object Local extends Situation
   }
 
+  def trainDataGroupedByShopItemId(situation: Situation): Map[ShopItemId, Seq[TrainDs]] = {
+    DataProvider.readSalesTrain(situation).groupBy(st => st.shopItemId)
+  }
+
   def readCsv[T](
                   filename: String,
                   fMap: Array[String] => T,
