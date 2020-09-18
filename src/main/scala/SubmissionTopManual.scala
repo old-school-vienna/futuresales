@@ -16,6 +16,7 @@ object SubmissionTopManual extends App {
   val tester = LocalTester
 
   Submission.runTestAll()
+
   //Submission.runZeros(Situation.Local)
   //Submission.runAllMean(Situation.Local)
   //Submission.runAllZeros(Situation.Local)
@@ -36,8 +37,6 @@ object SubmissionTopManual extends App {
     def proposedManualMean(proposedMeanMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
       proposedManual.getOrElse(id, proposedMeanMap.getOrElse(id, 0.0))
     }
-
-    def proposedAllZero(id: ShopItemId): Double = 0.0
 
     def proposedManualZero(id: ShopItemId): Double = proposedManual.getOrElse(id, 0.0)
 
@@ -64,18 +63,36 @@ object SubmissionTopManual extends App {
       ShopItemId(58, 20949) -> 70, // mean:86.12
     )
 
+    /**
+     * all zero        31.16
+     * manual and zero 17.60
+     * all mean        12.89
+     * manual and mean 14.70
+     */
     def runTestAll(): Unit = {
       val local = Situation.Local
       val pmm = proposedMeanMap(local)
       println("created mean")
       Seq(
-        ("all zero", tester.test(createSubmission(proposedAllZero))),
+        ("all zero", tester.test(createSubmission(_ => 0.0))),
         ("manual and zero", tester.test(createSubmission(proposedManualZero))),
         ("all mean", tester.test(createSubmission(proposedAllMean(pmm)))),
         ("manual and mean", tester.test(createSubmission(proposedManualMean(pmm)))),
-      ).map { case (t, v) => "%50s %.2f".format(t, v) }
+      ).map { case (t, v) => "%30s %.2f".format(t, v) }
         .foreach(println(_))
+    }
 
+    def runTestReal(): Unit = {
+      val local = Situation.Local
+      val pmm = proposedMeanMap(local)
+      println("created mean")
+      Seq(
+        ("all zero", tester.test(createSubmission(_ => 0.0))),
+        ("manual and zero", tester.test(createSubmission(proposedManualZero))),
+        ("all mean", tester.test(createSubmission(proposedAllMean(pmm)))),
+        ("manual and mean", tester.test(createSubmission(proposedManualMean(pmm)))),
+      ).map { case (t, v) => "%30s %.2f".format(t, v) }
+        .foreach(println(_))
 
     }
 
@@ -90,7 +107,7 @@ object SubmissionTopManual extends App {
     }
 
     def runAllZeros(situation: Situation): Unit = {
-      createFileOrTest(situation, "all_zero", proposedAllZero)
+      createFileOrTest(situation, "all_zero", _ => 0.0)
     }
 
 
@@ -102,10 +119,6 @@ object SubmissionTopManual extends App {
     def runAllMean(situation: Situation): Unit = {
       val pmm = proposedMeanMap(situation)
       createFileOrTest(situation, "all_mean", proposedAllMean(pmm))
-    }
-
-    private def test(proposed: ShopItemId => Double): Double = {
-      tester.test(createSubmission(proposed))
     }
 
     private def createFileOrTest(situation: Situation,
@@ -152,7 +165,7 @@ object SubmissionTopManual extends App {
         .reverse
         .map(toTopItem)
 
-      def toValueTupels(values: Iterable[TrainDs]): Seq[(Int, Double)] = {
+      def toValueTuples(values: Iterable[TrainDs]): Seq[(Int, Double)] = {
         values.toSeq
           .map(t => (t.month, t.itemCnt))
           .sortBy(_._1)
@@ -160,14 +173,14 @@ object SubmissionTopManual extends App {
 
       topItems
         .foreach { t =>
-          val mstr = "%.2f".format(t.itemCountMean)
-          println(s"    (ShopItemId(${t.shopId}, ${t.itemId}) -> 0.0), // mean:$mstr")
+          val ms = "%.2f".format(t.itemCountMean)
+          println(s"    (ShopItemId(${t.shopId}, ${t.itemId}) -> 0.0), // mean:$ms")
         }
 
       def toMultiDiagram(topItems: Seq[TopItem]): MultiDiagram[XY] = {
 
-        def toXy(vals: Iterable[TrainDs]): Seq[XY] = {
-          val vts: Map[Int, Double] = toValueTupels(vals).toMap
+        def toXy(values: Iterable[TrainDs]): Seq[XY] = {
+          val vts: Map[Int, Double] = toValueTuples(values).toMap
           val maxMonth = situation match {
             case Situation.Full => 33
             case Situation.Local => 32
