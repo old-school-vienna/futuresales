@@ -15,32 +15,18 @@ object SubmissionTopManual extends App {
 
   val tester = LocalTester
 
-  Submission.runTestAll()
+  Submission.runTestReal()
+  //Submission.runTestAll()
 
   //Submission.runZeros(Situation.Local)
   //Submission.runAllMean(Situation.Local)
   //Submission.runAllZeros(Situation.Local)
+
   //Analyse.run(situation = Situation.Local)
 
   object Submission {
 
-    private def proposedMeanMap(situation: Situation) = {
-      val trainData = trainDataGroupedByShopItemId(situation)
-      val proposedMean: Map[ShopItemId, Double] = proposedValuesMean(trainData)
-      proposedMean
-    }
-
-    def proposedAllMean(proposedMeanMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
-      proposedMeanMap.getOrElse(id, 0.0)
-    }
-
-    def proposedManualMean(proposedMeanMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
-      proposedManual.getOrElse(id, proposedMeanMap.getOrElse(id, 0.0))
-    }
-
-    def proposedManualZero(id: ShopItemId): Double = proposedManual.getOrElse(id, 0.0)
-
-    val proposedManual: Map[ShopItemId, Double] = Map(
+    val proposedManualSeq: Seq[(ShopItemId, Double)] = Seq(
       ShopItemId(31, 20949) -> 410, // mean:586.29
       ShopItemId(25, 20949) -> 410, // mean:421.85
       ShopItemId(28, 20949) -> 200, // mean:395.82
@@ -63,6 +49,24 @@ object SubmissionTopManual extends App {
       ShopItemId(58, 20949) -> 70, // mean:86.12
     )
 
+    val proposedManualMap: Map[ShopItemId, Double] = proposedManualSeq.toMap
+
+    private def proposedMeanMap(situation: Situation) = {
+      val trainData = trainDataGroupedByShopItemId(situation)
+      val proposedMean: Map[ShopItemId, Double] = proposedValuesMean(trainData)
+      proposedMean
+    }
+
+    def proposedAllMean(proposedMeanMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
+      proposedMeanMap.getOrElse(id, 0.0)
+    }
+
+    def proposedManualMean(proposedMeanMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
+      proposedManualMap.getOrElse(id, proposedMeanMap.getOrElse(id, 0.0))
+    }
+
+    def proposedManualZero(id: ShopItemId): Double = proposedManualMap.getOrElse(id, 0.0)
+
     /**
      * all zero        31.16
      * manual and zero 17.60
@@ -83,23 +87,19 @@ object SubmissionTopManual extends App {
     }
 
     def runTestReal(): Unit = {
-      val local = Situation.Local
-      val pmm = proposedMeanMap(local)
-      println("created mean")
-      Seq(
-        ("all zero", tester.test(createSubmission(_ => 0.0))),
-        ("manual and zero", tester.test(createSubmission(proposedManualZero))),
-        ("all mean", tester.test(createSubmission(proposedAllMean(pmm)))),
-        ("manual and mean", tester.test(createSubmission(proposedManualMean(pmm)))),
-      ).map { case (t, v) => "%30s %.2f".format(t, v) }
-        .foreach(println(_))
+
+      def real(shopItemId: ShopItemId): Double = {
+        val submissionId = shopItemIdToSubmissionId(shopItemId)
+        submissionId.map(i => tester.truthMap(i)).getOrElse(0.0)
+      }
+      proposedManualSeq.map(_._1).map(id => (id, real(id))).zip(proposedManualSeq).foreach(println(_))
 
     }
 
     def runManualInfo(): Unit = {
-      def formatMan(k: ShopItemId): String = s"${k.shopId} ${k.itemId} ${proposedManual(k)}"
+      def formatMan(k: ShopItemId): String = s"${k.shopId} ${k.itemId} ${proposedManualMap(k)}"
 
-      proposedManual.keys.map(k => formatMan(k)).foreach(s => println(s))
+      proposedManualMap.keys.map(k => formatMan(k)).foreach(s => println(s))
     }
 
     def runZeros(situation: Situation): Unit = {

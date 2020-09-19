@@ -4,6 +4,10 @@ import scala.io.Source
 
 object Util {
 
+  private lazy val _shopItemIdMap = DataProvider.readTestData().map(d => (d.shopItemId, d.id)).toMap
+
+  private lazy val _subMissionIdMap = DataProvider.readTestData().map(d => (d.id, d.shopItemId)).toMap
+
   sealed trait Situation
 
   object Situation {
@@ -14,6 +18,10 @@ object Util {
   def trainDataGroupedByShopItemId(situation: Situation): Map[ShopItemId, Seq[TrainDs]] = {
     DataProvider.readSalesTrain(situation).groupBy(st => st.shopItemId)
   }
+
+  def shopItemIdToSubmissionId(shopItemId: ShopItemId): Option[Int] = _shopItemIdMap.get(shopItemId)
+
+  def submissionIdToShopItemId(submissionId: Int): ShopItemId = _subMissionIdMap(submissionId)
 
   def readCsv[T](
                   filename: String,

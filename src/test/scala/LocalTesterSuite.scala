@@ -3,44 +3,35 @@ import org.scalatest.matchers.must.Matchers
 
 class LocalTesterSuite extends AnyFunSuite with Matchers {
 
-  test("visualize truth") {
-    LocalTester.truthMap.toSeq.sortBy(_._1).take(100).foreach(println(_))
+  Seq(
+    (213908, 45, 18975),
+    (213909, 45, 14153),
+    (213910, 45, 14899),
+    (213911, 45, 9199),
+  ).foreach { case (id, shopId, itemId) =>
+    test(s"mapping shop item id to submission Id $id") {
+      Util.submissionIdToShopItemId(id) mustBe ShopItemId(shopId, itemId)
+      Util.shopItemIdToSubmissionId(ShopItemId(shopId = shopId, itemId = itemId)) mustBe Some(id)
+    }
   }
 
-  test("ID 24 to 2.0 must be 0") {
-    LocalTester.test(Seq(SubmissionDs(24, 2.0))) mustBe 0.0 +- 0.0001
+  test("59 3838 must be 2.0") {
+    val id = Util.shopItemIdToSubmissionId(ShopItemId(59, 3838)).getOrElse(-1)
+    LocalTester.test(Seq(SubmissionDs(id, 2.0))) mustBe 0.0 +- 0.0001
   }
-  test("ID 24 to 4.0 must be 4") {
-    LocalTester.test(Seq(SubmissionDs(24, 4.0))) mustBe 4.0 +- 0.0001
+  test("25 20949 must be 410.0") {
+    val id = Util.shopItemIdToSubmissionId(ShopItemId(25, 20949)).getOrElse(-1)
+    LocalTester.test(Seq(SubmissionDs(id, 410.0))) mustBe 0.0 +- 0.0001
   }
-  test("ID 24 to 0.0 must be 4") {
-    LocalTester.test(Seq(SubmissionDs(24, 0.0))) mustBe 4.0 +- 0.0001
-  }
-  test("ID 30 to 0.0 must be 4") {
-    LocalTester.test(Seq(SubmissionDs(30, 0.0))) mustBe 4.0 +- 0.0001
-  }
-  test("ID 24 and 30 to 0.0 must be 4") {
-    val vs = Seq(
-      SubmissionDs(24, 0.0),
-      SubmissionDs(30, 0.0),
-    )
-    LocalTester.test(vs) mustBe 4.0 +- 0.0001
+  test("mean of multiple submissions") {
+    ???
   }
 
-  test("ID 0 to 2.4") {
-    LocalTester.test(Seq(SubmissionDs(0, 2.4))) mustBe 0.16 +- 0.0001
-  }
-  test("ID 5 to 2.4") {
-    LocalTester.test(Seq(SubmissionDs(5, 2.4))) mustBe 0.36 +- 0.0001
-  }
-  test("ID 200 to 2.4") {
-    LocalTester.test(Seq(SubmissionDs(200, 2.4))) mustBe 5.76 +- 0.0001
-  }
-  test("ID 0,5 to 2.4") {
-    val submissions = Seq(
-      SubmissionDs(0, 2.4),
-      SubmissionDs(5, 2.4),
-    )
-    LocalTester.test(submissions) mustBe 0.26 +- 0.0001
-  }
+  /*
+  (ShopItemId(12,11370),List(TrainDs(33,ShopItemId(12,11370),511.219033159842,123.0,9)))
+  (ShopItemId(12,11373),List(TrainDs(33,ShopItemId(12,11373),382.224936476734,2253.0,9)))
+  (ShopItemId(25,20949),List(TrainDs(33,ShopItemId(25,20949),5.0,461.0,71)))
+  (ShopItemId(28,20949),List(TrainDs(33,ShopItemId(28,20949),5.0,229.0,71)))
+  (ShopItemId(42,20949),List(TrainDs(33,ShopItemId(42,20949),5.0,446.0,71)))
+  */
 }
