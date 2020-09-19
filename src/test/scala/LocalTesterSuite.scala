@@ -15,23 +15,32 @@ class LocalTesterSuite extends AnyFunSuite with Matchers {
     }
   }
 
-  test("59 3838 must be 2.0") {
-    val id = Util.shopItemIdToSubmissionId(ShopItemId(59, 3838)).getOrElse(-1)
-    LocalTester.test(Seq(SubmissionDs(id, 2.0))) mustBe 0.0 +- 0.0001
-  }
-  test("25 20949 must be 410.0") {
+  test("25 20949 on 461.0 must be 0.0") {
     val id = Util.shopItemIdToSubmissionId(ShopItemId(25, 20949)).getOrElse(-1)
-    LocalTester.test(Seq(SubmissionDs(id, 410.0))) mustBe 0.0 +- 0.0001
+    LocalTester.test(Seq(SubmissionDs(id, 461.0))) mustBe 0.0 +- 0.0001
+  }
+  test("31 20949 on 431.0 must be 0.0") {
+    val id = Util.shopItemIdToSubmissionId(ShopItemId(31, 20949)).getOrElse(-1)
+    LocalTester.test(Seq(SubmissionDs(id, 431.0))) mustBe 0.0 +- 0.0001
+  }
+  test("31 20949 on 432.0 must be 1.0") {
+    val id = Util.shopItemIdToSubmissionId(ShopItemId(31, 20949)).getOrElse(-1)
+    LocalTester.test(Seq(SubmissionDs(id, 432.0))) mustBe 1.0 +- 0.0001
+  }
+  test("31 20949 on 433.0 must be 4.0") {
+    val id = Util.shopItemIdToSubmissionId(ShopItemId(31, 20949)).getOrElse(-1)
+    LocalTester.test(Seq(SubmissionDs(id, 433.0))) mustBe 4.0 +- 0.0001
+  }
+  test("31 20949 on 429.0 must be 4.0") {
+    val id = Util.shopItemIdToSubmissionId(ShopItemId(31, 20949)).getOrElse(-1)
+    LocalTester.test(Seq(SubmissionDs(id, 429.0))) mustBe 4.0 +- 0.0001
   }
   test("mean of multiple submissions") {
-    ???
+    val submissions = Seq(
+      SubmissionDs(Util.shopItemIdToSubmissionId(ShopItemId(31, 20949)).getOrElse(-1), 429.0),
+      SubmissionDs(Util.shopItemIdToSubmissionId(ShopItemId(25, 20949)).getOrElse(-1), 464.0),
+    )
+    LocalTester.test(submissions) mustBe 6.5 +- 0.0001
   }
 
-  /*
-  (ShopItemId(12,11370),List(TrainDs(33,ShopItemId(12,11370),511.219033159842,123.0,9)))
-  (ShopItemId(12,11373),List(TrainDs(33,ShopItemId(12,11373),382.224936476734,2253.0,9)))
-  (ShopItemId(25,20949),List(TrainDs(33,ShopItemId(25,20949),5.0,461.0,71)))
-  (ShopItemId(28,20949),List(TrainDs(33,ShopItemId(28,20949),5.0,229.0,71)))
-  (ShopItemId(42,20949),List(TrainDs(33,ShopItemId(42,20949),5.0,446.0,71)))
-  */
 }

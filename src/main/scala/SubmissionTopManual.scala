@@ -15,14 +15,14 @@ object SubmissionTopManual extends App {
 
   val tester = LocalTester
 
-  Submission.runTestReal()
-  //Submission.runTestAll()
+  //Submission.runTestReal()
+  Submission.runTestAll()
 
   //Submission.runZeros(Situation.Local)
   //Submission.runAllMean(Situation.Local)
   //Submission.runAllZeros(Situation.Local)
 
-  //Analyse.run(situation = Situation.Local)
+  //Analyse.run(situation = Situation.Full)
 
   object Submission {
 

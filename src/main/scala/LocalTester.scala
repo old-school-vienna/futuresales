@@ -2,8 +2,8 @@ import Util.{Situation, shopItemIdToSubmissionId}
 
 object LocalTester {
 
-  def calcTruth(id: ShopItemId, values: Seq[TrainDs]): Option[SubmissionDs] = {
-    val last = values.filter(t => t.month == 23)
+  def calcTruth(shopItemId: ShopItemId, values: Seq[TrainDs]): Option[SubmissionDs] = {
+    val last = values.filter(t => t.month == 33)
     val n = last.size
     val sum: Double = last match {
       case Nil => 0.0
@@ -13,11 +13,11 @@ object LocalTester {
       case 0 => 0.0
       case n1 => sum / n1
     }
-    shopItemIdToSubmissionId(shopItemId = id).map(i => SubmissionDs(i, mean))
+    shopItemIdToSubmissionId(shopItemId = shopItemId).map(i => SubmissionDs(i, mean))
   }
 
   def initTruth: Map[Int, Double] = {
-    DataProvider.readSalesTrain(situation = Situation.Local)
+    DataProvider.readSalesTrain(situation = Situation.Full)
       .groupBy(t => t.shopItemId)
       .flatMap { case (id, values) => calcTruth(id, values) }
       .map(s => (s.id, s.itemCnt))
