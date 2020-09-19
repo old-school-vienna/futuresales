@@ -1,27 +1,12 @@
 import Util.Situation
 
 object Tryout extends App {
-
+  
+def calcValueAt33(): Unit = {
   val ids = Seq(
-    ShopItemId(25, 20949),
-    ShopItemId(28, 20949),
-    ShopItemId(42,20949),
-    ShopItemId(12,11373),
-    ShopItemId(12,11370),
+    ShopItemId(31, 20949), // 431.0 (ShopItemId(31,20949),List(TrainDs(33,ShopItemId(31,20949),4.9973118279570965,431.0,71)))
+    ShopItemId(25, 20949), // 461.0 (ShopItemId(25,20949),List(TrainDs(33,ShopItemId(25,20949),5.0,461.0,71)))
   )
-  /*
-(ShopItemId(31,20949),410.0))
-((ShopItemId(25,20949),997.0),(ShopItemId(25,20949),410.0))
-((ShopItemId(28,20949),739.0),(ShopItemId(28,20949),200.0))
-((ShopItemId(42,20949),687.0),(ShopItemId(42,20949),480.0))
-((ShopItemId(12,11373),265.0),(ShopItemId(12,11373),400.0))
-((ShopItemId(12,11370),601.0),(ShopItemId(12,11370),200.0))
-((ShopItemId(57,20949),452.0),(ShopItemId(57,20949),100.0))
-((ShopItemId(47,20949),404.0),(ShopItemId(47,20949),150.0))
-((ShopItemId(22,20949),177.0),(ShopItemId(22,20949),50.0))
-((ShopItemId(21,20949),280.0),(ShopItemId(21,20949),150.0))
-((ShopItemId(46,20949),167.0),(ShopItemId(46,20949),100.0))
-*/
 
   DataProvider.readSalesTrain(situation = Situation.Full)
     .filter(t => t.month == 33)
@@ -31,6 +16,19 @@ object Tryout extends App {
     .sortBy(t => t._1.itemId)
     .sortBy(t => t._1.shopId)
     .foreach(println(_))
+}
 
+  def showMonths(): Unit ={
+    val months = DataProvider.readSalesTrain(situation = Situation.Full)
+      .groupBy(t => t.month)
+      .map(t => t._1)
+      .toSeq
+      .sorted
+      .mkString(", ")
 
+    println(s"months: $months")
+  }
+
+showMonths()  
+//calcValueAt33()
 }
