@@ -2,21 +2,22 @@ import Util.{Situation, readCsv}
 
 object DataProvider {
 
-  private lazy val salesTrainFull = _readSalesTrain(Situation.Full)
+  private lazy val salesTrainFull = _readSalesTrainFull
 
-  private lazy val salesTrainLocal = _readSalesTrain(Situation.Local)
+  private lazy val salesTrainLocal = _readSalesTrainLocal
 
   private lazy val testData = _readTestData()
 
   private case class SalesTrain(
-                         date: String,
-                         month: Int,
-                         shopId: Int,
-                         itemId: Int,
-                         itemPrice: Double,
-                         itemCntDay: Double,
-                         catId: Int,
-                       )
+                                 date: String,
+                                 month: Int,
+                                 shopId: Int,
+                                 itemId: Int,
+                                 itemPrice: Double,
+                                 itemCntDay: Double,
+                                 catId: Int,
+                               )
+
   private def toTestDs(line: Array[String]): TestDs = {
     TestDs(id = line(0).toInt,
       shopItemId = ShopItemId(line(1).toInt, line(2).toInt),
@@ -24,9 +25,9 @@ object DataProvider {
   }
 
 
-  def readTestData():Seq[TestDs] = testData
+  def readTestData(): Seq[TestDs] = testData
 
-  private def _readTestData():Seq[TestDs] = {
+  private def _readTestData(): Seq[TestDs] = {
     println("read test data")
     readCsv("data/test.csv", toTestDs)
   }
@@ -38,10 +39,13 @@ object DataProvider {
     }
   }
 
-  private def _readSalesTrain(situation: Situation): Seq[TrainDs] = {
+  private def _readSalesTrainLocal: Seq[TrainDs] = {
+    println(s"reading sales train local")
+    this.salesTrainFull.filter(x => x.month <= 32)
+  }
 
-    println(s"reading sales train $situation")
-
+  private def _readSalesTrainFull: Seq[TrainDs] = {
+    println(s"reading sales train full")
     def readSalesTrainCsv(filename: String,
                           catMapping: Map[Int, Int]): Seq[TrainDs] = {
 
@@ -57,10 +61,7 @@ object DataProvider {
       }
 
       def toMonthShopItemSales(sales: Iterable[SalesTrain]): Option[TrainDs] = {
-        val sSeq = situation match {
-          case Situation.Local => sales.toSeq.filter(t => t.month <= 32)
-          case Situation.Full => sales.toSeq
-        }
+        val sSeq = sales.toSeq
         sSeq match {
           case Nil => None
           case ss =>
