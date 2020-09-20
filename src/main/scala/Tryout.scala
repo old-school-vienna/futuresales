@@ -40,6 +40,14 @@ object Tryout extends App {
     val shopItemId = Util.submissionIdToShopItemId(submissionId)
     println(s"shop item id: $shopItemId")
   }
+
+  def truthRange(): Unit = {
+    val sorted = LocalTester.truthMap.values.toSeq.sorted
+    val min = sorted.last
+    val max = sorted.head
+    println(s"truth range $min to $max")
+  }
   
-  readTruthForSubmissionId()
+  truthRange()
+  
 }

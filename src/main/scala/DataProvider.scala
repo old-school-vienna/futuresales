@@ -28,8 +28,10 @@ object DataProvider {
   def readTestData(): Seq[TestDs] = testData
 
   private def _readTestData(): Seq[TestDs] = {
-    println("read test data")
-    readCsv("data/test.csv", toTestDs)
+    println("--> reading test")
+    val result = readCsv("data/test.csv", toTestDs)
+    println("<-- reading test")
+    result
   }
 
   def readSalesTrain(situation: Situation): Seq[TrainDs] = {
@@ -40,12 +42,13 @@ object DataProvider {
   }
 
   private def _readSalesTrainLocal: Seq[TrainDs] = {
-    println(s"reading sales train local")
-    this.salesTrainFull.filter(x => x.month <= 32)
+    println(s"--> reading sales train local")
+    val result = this.salesTrainFull.filter(x => x.month <= 32)
+    println(s"<-- reading sales train local")
+    result
   }
 
   private def _readSalesTrainFull: Seq[TrainDs] = {
-    println(s"reading sales train full")
     def readSalesTrainCsv(filename: String,
                           catMapping: Map[Int, Int]): Seq[TrainDs] = {
 
@@ -75,7 +78,8 @@ object DataProvider {
             ))
         }
       }
-
+      
+      
       Util.readCsv(filename, toSailsTrain)
         .filter(x => x.itemId != 11373 && x.shopId != 12)
         .groupBy(st => (st.month, st.itemId, st.shopId, st.catId))
@@ -100,10 +104,15 @@ object DataProvider {
       Util.readCsv(filename, readIds).toMap
     }
 
+    println(s"--> reading items")
     val catMap = readCategories("data/items.csv")
-    readSalesTrainCsv(
+    println(s"<-- reading items")
+    println(s"--> reading sales_train")
+    val result = readSalesTrainCsv(
       filename = "data/sales_train.csv",
       catMapping = catMap)
+    println(s"<-- reading sales_train")
+    result
   }
 
 }

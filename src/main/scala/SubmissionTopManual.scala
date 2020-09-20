@@ -2,6 +2,10 @@ import Util._
 import entelijan.viz.Viz._
 import entelijan.viz.VizCreators
 
+import scala.collection.GenSeq
+import scala.collection.parallel.CollectionConverters._
+import scala.collection.parallel.immutable.ParSeq
+
 case class TopItem(
                     id: Int,
                     itemId: Int,
@@ -124,24 +128,47 @@ object SubmissionTopManual extends App {
         .map(id => (id, truth(id)))
 
 
-      def proposedManualReal(n: Int)(id: ShopItemId): Double = {
-        proposedMeanSorted.take(n).toMap.getOrElse(id, proposedMean.getOrElse(id, 0.0))
+      def proposedManualReal(proposedManualRealMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
+        proposedManualRealMap.getOrElse(id, proposedMean.getOrElse(id, 0.0))
       }
 
       def latestId(n: Int): Option[ShopItemId] = {
         proposedMeanSorted.map(t => t._1).take(n).lastOption
       }
 
+      val sequences = Seq(
+        ("overview", Seq(0, 1, 5, 10, 11, 12, 13, 14, 15, 20, 30, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 200000, 300000, 400000, 500000).par),
+        ("medium", (0 to 200).par),
+        ("small", (0 to 50).par),
+      )
+      for (seq <- sequences) {
+        val _data = for (n <- seq._2) yield {
+          println(s"--> calculate $n")
+          val pm = proposedMeanSorted.take(n).toMap
+          val result = (n, latestId(n), tester.test(createSubmission(proposedManualReal(pm))))
+          println(s"<-- calculate $n")
+          result
+        }
 
-      val data = Seq(0, 1, 5, 10, 11, 12, 13, 14, 15, 20, 30, 50, 100, 500, 1000, 2000, 10000)
-        .map(n => (n, latestId(n), tester.test(createSubmission(proposedManualReal(n)))))
+        val data = _data.seq
 
-      data.foreach { t =>
-        val item = t._2.map(s => "%3s %7s".format(s.shopId.toString, s.itemId.toString)).getOrElse("-")
-        val nstr = t._1.toString
-        val estr = "%5.2f".format(t._3)
-        println("%14s %6s %6s".format(item, nstr, estr))
+        data.foreach { t =>
+          val item = t._2.map(s => "%3s %7s".format(s.shopId.toString, s.itemId.toString)).getOrElse("-")
+          val nstr = t._1.toString
+          val estr = "%5.2f".format(t._3)
+          println("%14s %10s %6s".format(item, nstr, estr))
+        }
+
+
+        val dataRow = DataRow(data = data.map(x => XY(x._1, x._3)))
+        val dia = Diagram[XY](id = s"use_real_${seq._1}",
+          title = s"Exchange mean by Real Values (${seq._1})",
+          yRange = Some(Range(Some(0), None)),
+          dataRows = Seq(dataRow))
+
+        VizCreators.gnuplot(clazz = classOf[XY]).createDiagram(dia = dia)
       }
+
 
     }
 
