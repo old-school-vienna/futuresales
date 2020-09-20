@@ -1,6 +1,6 @@
 import Util._
-import entelijan.viz.Viz.{DataRow, Diagram, MultiDiagram, XY}
-import entelijan.viz.{VizCreator, VizCreators}
+import entelijan.viz.Viz._
+import entelijan.viz.VizCreators
 
 case class TopItem(
                     id: Int,
@@ -15,7 +15,7 @@ object SubmissionTopManual extends App {
 
   val tester = LocalTester
 
-  Submission.runTestReal()
+  //Submission.runTestReal()
 
   //Submission.runTestAll()
 
@@ -24,6 +24,7 @@ object SubmissionTopManual extends App {
   //Submission.runAllZeros(Situation.Local)
 
   //Analyse.run(situation = Situation.Full)
+  Analyse.runBadAtMean()
 
   object Submission {
 
@@ -186,11 +187,7 @@ object SubmissionTopManual extends App {
 
   object Analyse {
 
-    val itemCnt = 20
-    val cols = 5
-    val fontFact = 0.5
-
-    def run(situation: Situation): Unit = {
+    def runTopMean(situation: Situation): Unit = {
       val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = trainDataGroupedByShopItemId(situation)
       val proposedMean: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap)
       val testData: Seq[TestDs] = DataProvider.readTestData()
@@ -210,7 +207,7 @@ object SubmissionTopManual extends App {
       val topItems: Seq[TopItem] = testData
         .map(toSubm(id => proposedMean.getOrElse(id, 0.0))(_))
         .sortBy(t => t.itemCnt)
-        .takeRight(itemCnt)
+        .takeRight(20)
         .reverse
         .map(toTopItem)
 
@@ -251,14 +248,68 @@ object SubmissionTopManual extends App {
           }
         }
 
-        MultiDiagram(id = s"topItems_$situation", columns = cols, fontFactor = fontFact, title = Some("Top Items"), diagrams = toDias)
+        MultiDiagram(id = s"topItems_$situation", columns = 5, fontFactor = 0.5, title = Some("Top Items"), diagrams = toDias)
       }
 
-      val c: VizCreator[XY] = VizCreators.gnuplot(clazz = classOf[XY])
-      c.createMultiDiagram(toMultiDiagram(topItems))
+      VizCreators.gnuplot(clazz = classOf[XY]).createMultiDiagram(toMultiDiagram(topItems))
 
     }
 
+
+    def runBadAtMean(): Unit = {
+      val items = Seq(
+        ShopItemId(31, 20949),
+        ShopItemId(42, 20949),
+        ShopItemId(22, 20949),
+        ShopItemId(12, 11373),
+        ShopItemId(21, 20949),
+        ShopItemId(30, 20949),
+      )
+
+
+      def _truth(ti: ShopItemId): Double = {
+        Util.shopItemIdToSubmissionId(ti)
+          .map(id => LocalTester.truthMap.getOrElse(id, 0.0))
+          .getOrElse(0.0)
+      }
+
+      def toMultiDiagram(topItems: Seq[ShopItemId]): MultiDiagram[XY] = {
+
+        def toXy(item: ShopItemId): Seq[XY] = {
+
+          def meanOfSales(data: Seq[TrainDs]): Double = {
+            val sum = data.map(d => d.itemCnt).sum
+            sum / data.size
+          }
+
+          val monthMap: Map[Int, Double] = DataProvider.readSalesTrain(Situation.Local)
+            .filter(x => x.shopItemId == item)
+            .groupBy(x => x.month)
+            .map(t => (t._1, meanOfSales(t._2)))
+
+          for (m <- 0 to 32) yield {
+            val value = monthMap.getOrElse(m, 0.0)
+            XY(m, value)
+          }
+
+        }
+
+        def toDias: Seq[Diagram[XY]] = {
+          topItems.map { ti =>
+            val truth = "%.2f".format(_truth(ti))
+            Diagram[XY](
+              id = "dia",
+              title = s"shop item: ${ti.shopId} ${ti.itemId} truth; $truth",
+              yRange = Some(Range(Some(0.0), Some(1000.0))),
+              dataRows = Seq(DataRow(data = toXy(ti))))
+          }
+        }
+
+        MultiDiagram(id = s"topItems_real", columns = 3, fontFactor = 0.7, title = Some("Top Items real"), diagrams = toDias)
+      }
+
+      VizCreators.gnuplot(clazz = classOf[XY]).createMultiDiagram(toMultiDiagram(items))
+    }
   }
 
 }
