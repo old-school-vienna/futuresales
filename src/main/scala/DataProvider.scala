@@ -77,6 +77,7 @@ object DataProvider {
       }
 
       Util.readCsv(filename, toSailsTrain)
+        .filter(x => x.itemId != 11373 && x.shopId != 12)
         .groupBy(st => (st.month, st.itemId, st.shopId, st.catId))
         .flatMap(t => toMonthShopItemSales(t._2))
         .toSeq
