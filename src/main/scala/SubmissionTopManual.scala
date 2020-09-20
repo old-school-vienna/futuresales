@@ -15,8 +15,9 @@ object SubmissionTopManual extends App {
 
   val tester = LocalTester
 
-  //Submission.runTestReal()
-  Submission.runTestAll()
+  Submission.runTestReal()
+
+  //Submission.runTestAll()
 
   //Submission.runZeros(Situation.Local)
   //Submission.runAllMean(Situation.Local)
@@ -86,15 +87,63 @@ object SubmissionTopManual extends App {
         .foreach(println(_))
     }
 
+    /**
+     *              - 0      24.61
+     *                31   20949    1      24.51
+     *                42   20949    5      24.28
+     *                22   20949   10      24.21
+     *                12   11373   11       3.10
+     *                21   20949   12       3.09
+     *                30   20949   13       3.09
+     *                46   20949   14       3.09
+     *                26   20949   15       3.09
+     *                16   20949   20       3.06
+     *                4   20949   30       3.00
+     *                10   20949   50       1.99
+     *                31    1855  100       1.93
+     *                26    3731  500       1.85
+     *                22    4178 1000       1.81
+     *                25   19116 2000       1.75
+     *                31    3617 10000       1.58
+     */
     def runTestReal(): Unit = {
+      val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = trainDataGroupedByShopItemId(Situation.Local)
+      val proposedMean = proposedValuesMean(trainDataMap)
 
-      def real(shopItemId: ShopItemId): Double = {
-        val submissionId = shopItemIdToSubmissionId(shopItemId)
-        submissionId.map(i => tester.truthMap(i)).getOrElse(0.0)
+      def truth(shopItemId: ShopItemId): Double = {
+        Util.shopItemIdToSubmissionId(shopItemId)
+          .map(id => LocalTester.truthMap.getOrElse(id, 0.0))
+          .getOrElse(0.0)
       }
-      proposedManualSeq.map(_._1).map(id => (id, real(id))).zip(proposedManualSeq).foreach(println(_))
+
+      val proposedMeanSorted = proposedMean
+        .toList
+        .sortBy(t => -t._2)
+        .map(t => t._1)
+        .map(id => (id, truth(id)))
+
+
+      def proposedManualReal(n: Int)(id: ShopItemId): Double = {
+        proposedMeanSorted.take(n).toMap.getOrElse(id, proposedMean.getOrElse(id, 0.0))
+      }
+
+      def latestId(n: Int): Option[ShopItemId] = {
+        proposedMeanSorted.map(t => t._1).take(n).lastOption
+      }
+
+
+      val data = Seq(0, 1, 5, 10, 11, 12, 13, 14, 15, 20, 30, 50, 100, 500, 1000, 2000, 10000)
+        .map(n => (n, latestId(n), tester.test(createSubmission(proposedManualReal(n)))))
+
+      data.foreach { t =>
+        val item = t._2.map(s => "%3s %7s".format(s.shopId.toString, s.itemId.toString)).getOrElse("-")
+        val nstr = t._1.toString
+        val estr = "%5.2f".format(t._3)
+        println("%14s %6s %6s".format(item, nstr, estr))
+      }
 
     }
+
 
     def runManualInfo(): Unit = {
       def formatMan(k: ShopItemId): String = s"${k.shopId} ${k.itemId} ${proposedManualMap(k)}"
