@@ -46,7 +46,7 @@ object SubmissionMean extends App {
       val situation = Situation.Full
       val trainData: Map[ShopItemId, Seq[TrainDs]] = DataProvider.readSalesTrain(situation)
         .groupBy(st => st.shopItemId)
-      val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData)
+      val pm: Map[ShopItemId, Double] = proposedValuesMean(trainData, situation)
       createSubmissionFile(id => pm.getOrElse(id, 0.0), situation, "mean")
     }
 

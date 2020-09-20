@@ -1,3 +1,4 @@
+import Util.createSubmission
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers
 
@@ -41,6 +42,19 @@ class LocalTesterSuite extends AnyFunSuite with Matchers {
       SubmissionDs(Util.shopItemIdToSubmissionId(ShopItemId(25, 20949)).getOrElse(-1), 464.0),
     )
     LocalTester.test(submissions) mustBe 6.5 +- 0.0001
+  }
+  test("all real must be 0.0") {
+    val truth = LocalTester.truthMap
+
+    def proposeReal(shopItemId: ShopItemId): Double = {
+      val submissionId = Util.shopItemIdToSubmissionId(shopItemId)
+      submissionId.map(sid => truth.getOrElse(sid, 0.0)).getOrElse(0.0)
+    }
+
+    val submission = createSubmission(proposeReal)
+    val result = LocalTester.test(submission)
+    result mustBe 0.0 +- 0.0001
+
   }
 
 }

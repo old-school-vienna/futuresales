@@ -48,6 +48,11 @@ object Tryout extends App {
     println(s"truth range $min to $max")
   }
   
-  truthRange()
+  def submissionLength(): Unit = {
+    val testDataSize = DataProvider.readTestData().size
+    val testDataDistinctSize = DataProvider.readTestData().distinct.size
+    println(s"test data: $testDataSize distinct $testDataDistinctSize")
+  }
   
+  truthRange()
 }
