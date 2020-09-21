@@ -78,12 +78,21 @@ object DataProvider {
             ))
         }
       }
-      
-      
+
+      val errorItems = Seq(
+        ShopItemId(12, 11373),
+        ShopItemId(25, 10201),
+        ShopItemId(42, 10201),
+        ShopItemId(42, 10202),
+        ShopItemId(25, 7224),
+        ShopItemId(25, 10202),
+        ShopItemId(12,20949),
+      )
+
       Util.readCsv(filename, toSailsTrain)
-        .filter(x => x.itemId != 11373 && x.shopId != 12)
+        .filter(st => !errorItems.contains(ShopItemId(st.shopId, st.itemId)))
         .groupBy(st => (st.month, st.itemId, st.shopId, st.catId))
-        .flatMap(t => toMonthShopItemSales(t._2))
+        .flatMap(st => toMonthShopItemSales(st._2))
         .toSeq
     }
 

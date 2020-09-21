@@ -15,7 +15,7 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  Submission.runMeanWithReal()
+  Submission.runSimpleWithReal()
 
   object Submission {
 
@@ -93,12 +93,14 @@ object SubmissionTopManual extends App {
     }
 
     /**
-     * Creates submissions for all mean and adds stepwise more and more real values to see
+     * Creates simple submission (e.g. all mean) and adds stepwise more and more real values to see
      * what is the effect of training certain shop/items
      */
-    def runMeanWithReal(): Unit = {
+    def runSimpleWithReal(): Unit = {
       val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = trainDataGroupedByShopItemId(Situation.Local)
-      val proposedMeanMap: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap, Situation.Local)
+      val proposedSimpleMap: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap, Situation.Local)
+      val proposedSimpleCompleteSeq: Seq[(ShopItemId, Double)] = DataProvider.readTestData()
+        .map(td => (td.shopItemId, proposedSimpleMap.getOrElse(td.shopItemId, 0.0)))
 
       def truth(shopItemId: ShopItemId): Double = {
         Util.shopItemIdToSubmissionId(shopItemId)
@@ -106,15 +108,14 @@ object SubmissionTopManual extends App {
           .getOrElse(0.0)
       }
 
-      val proposedMeanSorted = proposedMeanMap
-        .toList
+      val proposedMeanSorted = proposedSimpleCompleteSeq
         .sortBy(t => -t._2)
         .map(t => t._1)
         .map(id => (id, truth(id)))
 
 
       def proposedManualReal(proposedManualRealMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
-        proposedManualRealMap.getOrElse(id, proposedMeanMap.getOrElse(id, 0.0))
+        proposedManualRealMap.getOrElse(id, proposedSimpleMap.getOrElse(id, 0.0))
       }
 
       def latestId(n: Int): Option[ShopItemId] = {
@@ -122,10 +123,10 @@ object SubmissionTopManual extends App {
       }
 
       val sequences = Seq(
-        //("overview", Seq(0, 100, 500, 1000, 5000, 10_000, 50_000, 100_000, 200_000, 300_000).par),
-        //("medium", (0 to 200).par),
-        //("small", (0 to 50).par),
-        ("test", Seq(100_000, 200_000, 250_000, 300_000).par),
+        ("overview", (0 to 300_000 by 500).par),
+        ("small", (0 to 50).par),
+        ("medium", (0 to 10_000 by 100).par),
+        //("abyss", (30 to 40).par),
       )
       for (seq <- sequences) {
         val _data = for (n <- seq._2) yield {
@@ -148,7 +149,9 @@ object SubmissionTopManual extends App {
 
         val dataRow = DataRow(data = data.map(x => XY(x._1, x._3)))
         val dia = Diagram[XY](id = s"use_real_${seq._1}",
-          title = s"Exchange mean by Real Values (${seq._1})",
+          yLabel = Some("mse"),
+          xLabel = Some("number of exchanged values"),
+          title = s"stepwise exchange mean by real (${seq._1})",
           yRange = Some(Range(Some(0), None)),
           dataRows = Seq(dataRow))
 
