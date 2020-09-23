@@ -54,6 +54,10 @@ object SubmissionTopManual extends App {
       proposedMeanMap.getOrElse(id, 0.0)
     }
 
+    private def proposedAllMeanHalf(proposedMeanMap: Map[ShopItemId, Double], factor: Double)(id: ShopItemId): Double = {
+      proposedMeanMap.getOrElse(id, 0.0) * factor
+    }
+
     private def proposedManualMean(proposedMeanMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
       proposedManualMap.getOrElse(id, proposedMeanMap.getOrElse(id, 0.0))
     }
@@ -85,11 +89,14 @@ object SubmissionTopManual extends App {
       println("created mean")
       Seq(
         ("all zero", LocalTester.test(createSubmission(_ => 0.0))),
-        ("manual and zero", LocalTester.test(createSubmission(proposedManualZero))),
         ("all mean", LocalTester.test(createSubmission(proposedAllMean(pmm)))),
-        ("manual and mean", LocalTester.test(createSubmission(proposedManualMean(pmm)))),
-      ).map { case (t, v) => "%30s %.2f".format(t, v) }
-        .foreach(println(_))
+        ("all mean 0.8", LocalTester.test(createSubmission(proposedAllMeanHalf(pmm, 0.8)))),
+
+      ).map { case (t, v) => "%30s %.2f".format(t, v) }.foreach(println(_))
+
+      (0 to 10).map(x => (x / 50.0) + 0.7).map { f =>
+        (s"all mean ${f}", LocalTester.test(createSubmission(proposedAllMeanHalf(pmm, f))))
+      }.map { case (t, v) => "%30s %.2f".format(t, v) }.foreach(println(_))
     }
 
     /**
