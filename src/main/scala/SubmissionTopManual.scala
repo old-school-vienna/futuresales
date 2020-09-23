@@ -132,6 +132,7 @@ object SubmissionTopManual extends App {
       val sequences = Seq(
         ("overview", (0 to 300_000 by 500).par),
         ("small", (0 to 50).par),
+        ("xsmall", (0 to 5).par),
         ("medium", (0 to 10_000 by 100).par),
         //("abyss", (30 to 40).par),
       )
