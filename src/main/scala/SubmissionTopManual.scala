@@ -16,7 +16,7 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  Submission.runMeanWithFactor()
+  Submission.runSimpleWithReal()
 
   object Submission {
 
@@ -47,7 +47,7 @@ object SubmissionTopManual extends App {
 
     private def proposedMeanMap(situation: Situation) = {
       val trainData = trainDataGroupedByShopItemId(situation)
-      val proposedMean: Map[ShopItemId, Double] = proposedValuesMean(trainData, situation)
+      val proposedMean: Map[ShopItemId, Double] = proposedValuesMean(trainData, situation, 0.8)
       proposedMean
     }
 
@@ -113,7 +113,7 @@ object SubmissionTopManual extends App {
      */
     def runSimpleWithReal(): Unit = {
       val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = trainDataGroupedByShopItemId(Situation.Local)
-      val proposedSimpleMap: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap, Situation.Local)
+      val proposedSimpleMap: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap, Situation.Local, 0.8)
       val proposedSimpleCompleteSeq: Seq[(ShopItemId, Double)] = DataProvider.readTestData()
         .map(td => (td.shopItemId, proposedSimpleMap.getOrElse(td.shopItemId, 0.0)))
 
@@ -221,7 +221,7 @@ object SubmissionTopManual extends App {
 
     def runTopMean(situation: Situation): Unit = {
       val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = trainDataGroupedByShopItemId(situation)
-      val proposedMean: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap, situation)
+      val proposedMean: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap, situation, 0.8)
       val testData: Seq[TestDs] = DataProvider.readTestData()
 
       val idMap: Map[Int, ShopItemId] = testData.map(t => (t.id, t.shopItemId)).toMap

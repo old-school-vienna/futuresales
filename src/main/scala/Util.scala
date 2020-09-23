@@ -63,7 +63,7 @@ object Util {
     }
   }
 
-  def proposedValuesMean(trainData: Map[ShopItemId, Seq[TrainDs]], situation: Situation): Map[ShopItemId, Double] = {
+  def proposedValuesMean(trainData: Map[ShopItemId, Seq[TrainDs]], situation: Situation, factor: Double): Map[ShopItemId, Double] = {
 
     val length = situation match {
       case Situation.Full => 34
@@ -72,7 +72,7 @@ object Util {
     
     def meanItems(items: Iterable[TrainDs]): Double = {
       val seqItems = items.toSeq
-      seqItems.map(i => i.itemCnt).sum / length
+      (seqItems.map(i => i.itemCnt).sum / length) * factor
     }
 
     trainData.map(t => (t._1, meanItems(t._2)))
