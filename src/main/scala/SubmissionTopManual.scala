@@ -1,6 +1,7 @@
 import Util._
 import entelijan.viz.Viz._
 import entelijan.viz.VizCreators
+import entelijan.vizb.LineChartBuilder
 
 import scala.collection.parallel.CollectionConverters._
 
@@ -15,7 +16,7 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  Submission.runSimpleWithReal()
+  Submission.runMeanWithFactor()
 
   object Submission {
 
@@ -84,19 +85,26 @@ object SubmissionTopManual extends App {
      * manual and mean 14.70
      */
     def runTestAll(): Unit = {
-      val local = Situation.Local
-      val pmm = proposedMeanMap(local)
+      val pmm = proposedMeanMap(Situation.Local)
       println("created mean")
       Seq(
         ("all zero", LocalTester.test(createSubmission(_ => 0.0))),
         ("all mean", LocalTester.test(createSubmission(proposedAllMean(pmm)))),
         ("all mean 0.8", LocalTester.test(createSubmission(proposedAllMeanHalf(pmm, 0.8)))),
-
       ).map { case (t, v) => "%30s %.2f".format(t, v) }.foreach(println(_))
+    }
 
-      (0 to 10).map(x => (x / 50.0) + 0.7).map { f =>
-        (s"all mean ${f}", LocalTester.test(createSubmission(proposedAllMeanHalf(pmm, f))))
-      }.map { case (t, v) => "%30s %.2f".format(t, v) }.foreach(println(_))
+    def runMeanWithFactor(): Unit = {
+      val pmm = proposedMeanMap(Situation.Local)
+      val mse = (0 to 30).map(x => (x / 50.0) + 0.5).map { f =>
+        val fs = "%5.2f".format(f)
+        (s"mean with factor $fs", f, LocalTester.test(createSubmission(proposedAllMeanHalf(pmm, f))))
+      }
+      mse.map { case (t, f, v) => "%30s %5.3f".format(t, v) }.foreach(println(_))
+      LineChartBuilder("mean_with_factor")
+        .title("mean with factor")
+        .data(mse.map{ case (_, x, y) => XY(x, y)})
+        .build()
     }
 
     /**
