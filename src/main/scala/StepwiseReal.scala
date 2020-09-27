@@ -107,8 +107,12 @@ object StepwiseReal extends App {
     
     LineChartBuilder("truth")
       .data(xy)
+      .title("Truths")
+      .yLabel("true sales")
+      .xLabel("shop/items")
       .yRange(0, 10)
       .xRange(0, 30_000)
+      .size(2200, 1400)
       .create()
   }
   
