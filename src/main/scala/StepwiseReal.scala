@@ -8,7 +8,8 @@ object StepwiseReal extends App {
 
   //runMeanWithStepwiseReal()
   //runMeanSorted()
-  runVisualizeRegions()
+  //runVisualizeRegions()
+  runVisualizeReal()
 
   private def proposedSimpleCompleteSeq: Seq[(ShopItemId, Double)] = {
     val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = trainDataGroupedByShopItemId(Situation.Local)
@@ -96,6 +97,23 @@ object StepwiseReal extends App {
 
   }
 
+  def runVisualizeReal(): Unit = {
+    val td: Seq[(TestDs, Int)] = DataProvider.readTestData().map(td => (td, Util.shopItemIdToSubmissionId(td.shopItemId).get))
+        
+    val xy = td.map{case (testds, submissionId) => LocalTester.truthMap.getOrElse(submissionId, 0.0)}
+      .sortBy(t => -t)
+      .zipWithIndex
+      .map(t => XY(t._2, t._1))
+    
+    LineChartBuilder("truth")
+      .data(xy)
+      .yRange(0, 10)
+      .xRange(0, 30_000)
+      .create()
+  }
+  
+  
+  
   /**
    * Creates simple submission (e.g. all mean) and adds stepwise more and more real values to see
    * what is the effect of training certain shop/items
