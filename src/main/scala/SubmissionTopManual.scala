@@ -3,7 +3,6 @@ import entelijan.viz.Viz._
 import entelijan.viz.VizCreators
 import entelijan.vizb.LineChartBuilder
 
-import scala.collection.parallel.CollectionConverters._
 
 case class TopItem(
                     id: Int,
@@ -16,7 +15,7 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  Submission.runSimpleWithReal()
+  Submission.runMeanWithFactor()
 
   object Submission {
 
@@ -107,77 +106,6 @@ object SubmissionTopManual extends App {
         .build()
     }
 
-    /**
-     * Creates simple submission (e.g. all mean) and adds stepwise more and more real values to see
-     * what is the effect of training certain shop/items
-     */
-    def runSimpleWithReal(): Unit = {
-      val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = trainDataGroupedByShopItemId(Situation.Local)
-      val proposedSimpleMap: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap, Situation.Local, 0.8)
-      val proposedSimpleCompleteSeq: Seq[(ShopItemId, Double)] = DataProvider.readTestData()
-        .map(td => (td.shopItemId, proposedSimpleMap.getOrElse(td.shopItemId, 0.0)))
-
-      def truth(shopItemId: ShopItemId): Double = {
-        Util.shopItemIdToSubmissionId(shopItemId)
-          .map(id => LocalTester.truthMap.getOrElse(id, 0.0))
-          .getOrElse(0.0)
-      }
-
-      val proposedMeanSorted = proposedSimpleCompleteSeq
-        .sortBy(t => -t._2)
-        .map(t => t._1)
-        .map(id => (id, truth(id)))
-
-
-      def proposedManualReal(proposedManualRealMap: Map[ShopItemId, Double])(id: ShopItemId): Double = {
-        proposedManualRealMap.getOrElse(id, proposedSimpleMap.getOrElse(id, 0.0))
-      }
-
-      def latestId(n: Int): Option[ShopItemId] = {
-        proposedMeanSorted.map(t => t._1).take(n).lastOption
-      }
-
-      val sequences = Seq(
-        ("overview", (0 to 300_000 by 500).par),
-        ("small", (0 to 50).par),
-        ("xsmall", (0 to 5).par),
-        ("medium", (0 to 10_000 by 100).par),
-        //("abyss", (30 to 40).par),
-      )
-      for (seq <- sequences) {
-        val _data = for (n <- seq._2) yield {
-          println(s"--> calculate $n")
-          val pm = proposedMeanSorted.take(n).toMap
-          val result = (n, latestId(n), LocalTester.test(createSubmission(proposedManualReal(pm))))
-          println(s"<-- calculate $n")
-          result
-        }
-
-        val data = _data.seq
-
-        data.foreach { t =>
-          val item = t._2.map(s => "%3s %7s".format(s.shopId.toString, s.itemId.toString)).getOrElse("-")
-          val nstr = t._1.toString
-          val estr = "%5.2f".format(t._3)
-          println("%14s %10s %6s".format(item, nstr, estr))
-        }
-
-
-        val dataRow = DataRow(data = data.map(x => XY(x._1, x._3)))
-        val dia = Diagram[XY](id = s"use_real_${seq._1}",
-          yLabel = Some("mse"),
-          xLabel = Some("number of exchanged values"),
-          title = s"stepwise exchange mean by real (${seq._1})",
-          yRange = Some(Range(Some(0), None)),
-          dataRows = Seq(dataRow))
-
-        VizCreators.gnuplot(clazz = classOf[XY]).createDiagram(dia = dia)
-      }
-
-
-    }
-
-
     def runManualInfo(): Unit = {
       def formatMan(k: ShopItemId): String = s"${k.shopId} ${k.itemId} ${proposedManualMap(k)}"
 
@@ -243,11 +171,6 @@ object SubmissionTopManual extends App {
         .reverse
         .map(toTopItem)
 
-      def toValueTuples(values: Iterable[TrainDs]): Seq[(Int, Double)] = {
-        values.toSeq
-          .map(t => (t.month, t.itemCnt))
-          .sortBy(_._1)
-      }
 
       topItems
         .foreach { t =>
@@ -256,6 +179,12 @@ object SubmissionTopManual extends App {
         }
 
       def toMultiDiagram(topItems: Seq[TopItem]): MultiDiagram[XY] = {
+
+        def toValueTuples(values: Iterable[TrainDs]): Seq[(Int, Double)] = {
+          values.toSeq
+            .map(t => (t.month, t.itemCnt))
+            .sortBy(_._1)
+        }
 
         def toXy(values: Iterable[TrainDs]): Seq[XY] = {
           val vts: Map[Int, Double] = toValueTuples(values).toMap

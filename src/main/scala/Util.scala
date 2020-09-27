@@ -1,5 +1,7 @@
 import java.io.{BufferedWriter, File, FileWriter}
 
+import entelijan.viz.Viz.XY
+
 import scala.io.Source
 
 object Util {
@@ -109,4 +111,24 @@ object Util {
     DataProvider.readTestData()
       .map(toSubm(fProposedValues)(_))
   }
+
+  def toXy(values: Iterable[TrainDs], situation: Situation): Seq[XY] = {
+
+    def toValueTuples(values: Iterable[TrainDs]): Seq[(Int, Double)] = {
+      values.toSeq
+        .map(t => (t.month, t.itemCnt))
+        .sortBy(_._1)
+    }
+
+    val vts: Map[Int, Double] = toValueTuples(values).toMap
+    val maxMonth = situation match {
+      case Situation.Full => 33
+      case Situation.Local => 32
+    }
+    for (x <- 0 to maxMonth) yield {
+      val y: Double = vts.getOrElse(x, 0.0)
+      XY(x.toDouble, y)
+    }
+  }
+
 }
