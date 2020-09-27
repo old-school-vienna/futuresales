@@ -1,12 +1,12 @@
 import Util.{Situation, createSubmission, proposedValuesMean, trainDataGroupedByShopItemId}
 import entelijan.viz.Viz.XY
-import entelijan.vizb.{Creatable, LineChartBuilder, MultiChartBuilder}
+import entelijan.vizb.{LineChartBuilder, MultiChartBuilder}
 
 import scala.collection.parallel.CollectionConverters._
 
 object StepwiseReal extends App {
 
-  //runSimpleWithReal()
+  //runMeanWithStepwiseReal()
   //runMeanSorted()
   runVisualizeRegions()
 
@@ -46,57 +46,52 @@ object StepwiseReal extends App {
 
 
   def runVisualizeRegions(): Unit = {
-    val all = DataProvider.readSalesTrain(Situation.Local)
 
-    def toXy(shopItemId: ShopItemId): Seq[XY] = {
-      val sales = all.filter(x => x.shopItemId == shopItemId)
-      val vts: Map[Int, Double] = sales.map(t => (t.month, t.itemCnt)).toMap
-      for (x <- 0 to 32) yield {
-        val y: Double = vts.getOrElse(x, 0.0)
-        XY(x.toDouble, y)
-      }
+    case class ShopItemIndexed(shopItemId: ShopItemId, mean: Double, index: Int)
 
-
-    }
-
-
-    val region1: Seq[(ShopItemId, Double, Int)] = proposedSimpleCompleteSeq
+    val shopItemsIndexed: Seq[ShopItemIndexed] = proposedSimpleCompleteSeq
       .sortBy(-_._2)
       .zipWithIndex
-      .filter(t => t._2 < 300)
-      .map(t => (t._1._1, t._1._2, t._2))
+      .map(t => ShopItemIndexed(t._1._1, t._1._2, t._2))
 
+    def multidia(regionName: String, startIndex: Int, yMax: Int): Unit = {
 
-    def multidia(data: Seq[(ShopItemId, Double, Int)], part: (Int, Int)): Unit = {
+      val columns = 5
+      val rows = 5
+      
+      val to = startIndex + columns * rows - 1
+      val data: Seq[ShopItemIndexed] = shopItemsIndexed.filter(t => t.index >= startIndex && t.index <= to)
+
+      def toXy(shopItemId: ShopItemId): Seq[XY] = {
+        val shopItemSales = DataProvider.readSalesTrain(Situation.Local).filter(x => x.shopItemId == shopItemId)
+        val salesOfMonth: Map[Int, Double] = shopItemSales.map(t => (t.month, t.itemCnt)).toMap
+        for (x <- 0 to 32) yield {
+          val y: Double = salesOfMonth.getOrElse(x, 0.0)
+          XY(x.toDouble, y)
+        }
+      }
 
       val buildables = data.map {
-        case (shopItemId, mean, _) =>
-          val title = s"region 1 ${shopItemId.itemId}/${shopItemId.shopId} $mean%.2f"
+        shopItemIndexed =>
+          val title = f"index:${shopItemIndexed.index} (${shopItemIndexed.shopItemId.shopId}/${shopItemIndexed.shopItemId.itemId}) mean:${shopItemIndexed.mean}%.2f"
           LineChartBuilder()
-            .data(toXy(shopItemId))
-            .title("title")
-
-
+            .data(toXy(shopItemIndexed.shopItemId))
+            .yRange(0, yMax)
+            .title(title)
       }
-      val sp = s"${part._1}_${part._2}"
-      MultiChartBuilder(s"region_1_$sp")
-        .title(s"Region 1 (${part._1} to ${part._2})")
+      val sp = s"${startIndex}_$to"
+      MultiChartBuilder(s"${regionName}_$sp")
+        .title(s"$regionName ($startIndex to $to)")
         .buildables(buildables)
+        .columns(columns)
+        .size(2400, 1300)
         .create()
     }
 
-    Seq(
-      (0, 8),
-      (10, 18),
-      (50, 58),
-      (100, 108),
-      (200, 208),
-      (290, 298)
-    ).foreach { case (from, to) =>
-      val part=  (from, to)
-      val md: Seq[(ShopItemId, Double, Int)] = region1.filter(t => t._3 >= from && t._3 <= to)
-      multidia(md, part)
-    }
+
+    Seq(0, 50, 100, 200, 250, 300, 400, 1000).foreach {i =>multidia("R1", i, 200)}
+    Seq(50_000, 100_000, 110_000, 120_000, 130_000, 140_000, 150_000, 160_000).foreach {i =>multidia("R2", i, 10)}
+    Seq(150_000, 151_000, 152_000, 153_000, 154_000, 155_000).foreach {i =>multidia("R2a", i, 10)}
 
 
   }
@@ -105,7 +100,7 @@ object StepwiseReal extends App {
    * Creates simple submission (e.g. all mean) and adds stepwise more and more real values to see
    * what is the effect of training certain shop/items
    */
-  def runSimpleWithReal(): Unit = {
+  def runMeanWithStepwiseReal(): Unit = {
 
     val proposedSimpleMap = proposedSimpleCompleteSeq.toMap
 
@@ -161,7 +156,7 @@ object StepwiseReal extends App {
         .xLabel("number of exchanged values")
         .title(s"Stepwise Real $name")
         .data(data.map(x => XY(x._1, x._3)))
-        .build()
+        .create()
 
     }
 
