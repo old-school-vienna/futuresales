@@ -39,7 +39,7 @@ object StepwiseReal extends App {
         .title(s"mean sorted ${cfg.name}")
         .yRangeMax(cfg.yMax)
         .xRange(cfg.xMin, cfg.xMax)
-        .data(xy)
+        .xySeq(xy)
         .create()
     }
 
@@ -76,7 +76,7 @@ object StepwiseReal extends App {
         shopItemIndexed =>
           val title = f"index:${shopItemIndexed.index} (${shopItemIndexed.shopItemId.shopId}/${shopItemIndexed.shopItemId.itemId}) mean:${shopItemIndexed.mean}%.2f"
           LineChartBuilder()
-            .data(toXy(shopItemIndexed.shopItemId))
+            .xySeq(toXy(shopItemIndexed.shopItemId))
             .yRange(0, yMax)
             .title(title)
       }
@@ -106,7 +106,7 @@ object StepwiseReal extends App {
       .map(t => XY(t._2, t._1))
     
     LineChartBuilder("truth")
-      .data(xy)
+      .xySeq(xy)
       .title("Truths")
       .yLabel("true sales")
       .xLabel("shop/items")
@@ -177,7 +177,7 @@ object StepwiseReal extends App {
         .yLabel("mse")
         .xLabel("number of exchanged values")
         .title(s"Stepwise Real $name")
-        .data(data.map(x => XY(x._1, x._3)))
+        .xySeq(data.map(x => XY(x._1, x._3)))
         .create()
 
     }
