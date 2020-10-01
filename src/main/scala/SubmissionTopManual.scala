@@ -15,7 +15,8 @@ case class TopItem(
 
 object SubmissionTopManual extends App {
 
-  Submission.runMeanWithFactor()
+  //Submission.runTestAll()
+  Analyse.runTopMean(Situation.Local)
 
   object Submission {
 
