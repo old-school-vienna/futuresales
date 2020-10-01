@@ -102,7 +102,7 @@ object SubmissionTopManual extends App {
       mse.map { case (t, f, v) => "%30s %5.3f".format(t, v) }.foreach(println(_))
       LineChartBuilder("mean_with_factor")
         .title("mean with factor")
-        .data(mse.map{ case (_, x, y) => XY(x, y)})
+        .xySeq(mse.map{ case (_, x, y) => XY(x, y)})
         .build()
     }
 
