@@ -1,4 +1,4 @@
-object DfTrain3 extends App {
+object DfTrain3 {
 
   /*
 "cnt","shop_id","item_id","month_nr","cnt1","cnt_3m",
@@ -10,7 +10,7 @@ object DfTrain3 extends App {
 10,6,30,2,28,NA,4007,NA,861,NA,NA
   */
 
-  case class Train3(
+  private case class Train3(
                      cnt: Int,
                      shopItemId: ShopItemId,
                      monthNr: Int,
@@ -24,16 +24,17 @@ object DfTrain3 extends App {
                    )
 
 
-
-  def toTrain3(line: Array[String]): Train3 = {
+  private def toTrain3(line: Array[String]): Train3 = {
     def toi(s: String): Int = {
       if (s == "NA") 0
       else s.toInt
     }
+
     def tod(s: String): Double = {
       if (s == "NA") 0.0
       else s.toDouble
     }
+
     Train3(
       cnt = toi(line(0)),
       shopItemId = ShopItemId(toi(line(1)), toi(line(2))),
@@ -48,24 +49,30 @@ object DfTrain3 extends App {
     )
   }
 
-  def toSubmission(in: Train3 ):SubmissionDs = {
+  private def toSubmission(in: Train3): SubmissionDs = {
     SubmissionDs(
       id = Util.shopItemIdToSubmissionId(in.shopItemId).get,
       itemCnt = in.cntFor
     )
   }
-  val sMap: Map[Int, Double] = Util.readCsv("data/df_train3.csv", toTrain3)
-    .filter(_.monthNr == 34)
-    .map(toSubmission)
-    .map(s => (s.id, s.itemCnt))
-    .toMap
 
-  val submission = DataProvider.readTestData()
-    .map(x => Util.shopItemIdToSubmissionId(x.shopItemId).get)
-    .map(sid => SubmissionDs(sid, sMap.getOrElse(sid, 0.0)))
+  /**
+   * Prints the error for the train3 submission
+   */
+  def printError(): Unit = {
+    val sMap: Map[Int, Double] = Util.readCsv("data/df_train3.csv", toTrain3)
+      .filter(_.monthNr == 34)
+      .map(toSubmission)
+      .map(s => (s.id, s.itemCnt))
+      .toMap
 
-  val mse = LocalTester.test(submission)
+    val submission = DataProvider.readTestData()
+      .map(x => Util.shopItemIdToSubmissionId(x.shopItemId).get)
+      .map(sid => SubmissionDs(sid, sMap.getOrElse(sid, 0.0)))
 
-  println(f"--- mse for df_train3 is $mse%.3f ---")
+    val mse = LocalTester.test(submission)
+
+    println(f"--- mse for df_train3 is $mse%.3f ---")
+  }
 
 }
