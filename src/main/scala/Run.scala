@@ -12,7 +12,8 @@ object Run {
                            )
 
   private val actions = Seq(
-    Action("train3.printError", "Prints the error for the train3 submission", () => DfTrain3.printError()),
+    Action("printErrorTrain3", "Prints the error for the train3 submission", () => DfTrain.printErrorTrain3()),
+    Action("printErrorTrain4", "Prints the error for the train3 submission", () => DfTrain.printErrorTrain4()),
     Action("printErrorAllReal", "Show that testing a submission with all real values leads to error zero", () => SubmissionTopManual.printErrorAllReal()),
     Action("plotErrorForMeanWithFactor", "Plot the error for mean submissions with factor", () => SubmissionTopManual.plotErrorForMeanWithFactor()),
     Action("submissionFileJustMean", "Create a kaggle submissin. All proposition mean of months", () => SubmissionMean.submissionFileJustMean()),

@@ -54,5 +54,4 @@ object Tryout {
     println(s"test data: $testDataSize distinct $testDataDistinctSize")
   }
   
-  truthRange()
 }
