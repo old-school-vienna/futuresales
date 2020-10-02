@@ -13,8 +13,11 @@ object Util {
   sealed trait Situation
 
   object Situation {
+
     final case object Full extends Situation
+
     final case object Local extends Situation
+
   }
 
   def trainDataGroupedByShopItemId(situation: Situation): Map[ShopItemId, Seq[TrainDs]] = {
@@ -65,13 +68,13 @@ object Util {
     }
   }
 
-  def proposedValuesMean(trainData: Map[ShopItemId, Seq[TrainDs]], situation: Situation, factor: Double): Map[ShopItemId, Double] = {
+  def proposedValuesMean(trainData: Map[ShopItemId, Seq[TrainDs]], situation: Situation, factor: Double = 1.0): Map[ShopItemId, Double] = {
 
     val length = situation match {
       case Situation.Full => 34
       case Situation.Local => 33
     }
-    
+
     def meanItems(items: Iterable[TrainDs]): Double = {
       val seqItems = items.toSeq
       (seqItems.map(i => i.itemCnt).sum / length) * factor
@@ -94,11 +97,11 @@ object Util {
     sb.toString()
   }
 
-  def createSubmissionFile(fProposedValues: ShopItemId => Double, situation: Situation, name: String):Unit = {
+  def createSubmissionFile(fProposedValues: ShopItemId => Double, situation: Situation, name: String): Unit = {
     val tests = createSubmission(fProposedValues)
     val outFileName = situation match {
       case Situation.Full => s"data/submission_$name.csv"
-      case Situation.Local =>s"data/submission_local_$name.csv"
+      case Situation.Local => s"data/submission_local_$name.csv"
     }
     Util.writeCsv(filename = outFileName,
       trains = tests,
@@ -129,6 +132,10 @@ object Util {
       val y: Double = vts.getOrElse(x, 0.0)
       XY(x.toDouble, y)
     }
+  }
+
+  def fromToStep(from: Double, to: Double, step: Double): Seq[Double] = {
+    (BigDecimal(from) to BigDecimal(to) by BigDecimal(step)).map(_.toDouble)
   }
 
 }

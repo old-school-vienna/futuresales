@@ -2,7 +2,7 @@ import java.util.Locale
 
 import Util.Situation
 
-object DataExport extends App {
+object DataExport {
 
   exportShopItemMonth(Situation.Local)
 

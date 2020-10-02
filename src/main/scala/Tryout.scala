@@ -1,6 +1,6 @@
 import Util.Situation
 
-object Tryout extends App {
+object Tryout {
 
   def calcValueAt33(): Unit = {
     val ids = Seq(

@@ -4,19 +4,13 @@ import entelijan.vizb.{LineChartBuilder, MultiChartBuilder}
 
 import scala.collection.parallel.CollectionConverters._
 
-object StepwiseReal extends App {
-
-  //runMeanWithStepwiseReal()
-  //runMeanSorted()
-  //runVisualizeRegions()
-  runVisualizeReal()
+object StepwiseReal {
 
   private def proposedSimpleCompleteSeq: Seq[(ShopItemId, Double)] = {
     val trainDataMap: Map[ShopItemId, Seq[TrainDs]] = trainDataGroupedByShopItemId(Situation.Local)
     val proposedSimpleMap: Map[ShopItemId, Double] = proposedValuesMean(trainDataMap, Situation.Local, 0.8)
     DataProvider.readTestData().map(td => (td.shopItemId, proposedSimpleMap.getOrElse(td.shopItemId, 0.0)))
   }
-
 
   def runMeanSorted(): Unit = {
 
@@ -59,7 +53,7 @@ object StepwiseReal extends App {
 
       val columns = 5
       val rows = 5
-      
+
       val to = startIndex + columns * rows - 1
       val data: Seq[ShopItemIndexed] = shopItemsIndexed.filter(t => t.index >= startIndex && t.index <= to)
 
@@ -90,21 +84,21 @@ object StepwiseReal extends App {
     }
 
 
-    Seq(0, 50, 100, 200, 250, 300, 400, 1000).foreach {i =>multidia("R1", i, 200)}
-    Seq(50_000, 100_000, 110_000, 120_000, 130_000, 140_000, 150_000, 160_000).foreach {i =>multidia("R2", i, 10)}
-    Seq(150_000, 151_000, 152_000, 153_000, 154_000, 155_000).foreach {i =>multidia("R2a", i, 10)}
+    Seq(0, 50, 100, 200, 250, 300, 400, 1000).foreach { i => multidia("R1", i, 200) }
+    Seq(50_000, 100_000, 110_000, 120_000, 130_000, 140_000, 150_000, 160_000).foreach { i => multidia("R2", i, 10) }
+    Seq(150_000, 151_000, 152_000, 153_000, 154_000, 155_000).foreach { i => multidia("R2a", i, 10) }
 
 
   }
 
   def runVisualizeReal(): Unit = {
     val td: Seq[(TestDs, Int)] = DataProvider.readTestData().map(td => (td, Util.shopItemIdToSubmissionId(td.shopItemId).get))
-        
-    val xy = td.map{case (testds, submissionId) => LocalTester.truthMap.getOrElse(submissionId, 0.0)}
+
+    val xy = td.map { case (_, submissionId) => LocalTester.truthMap.getOrElse(submissionId, 0.0) }
       .sortBy(t => -t)
       .zipWithIndex
       .map(t => XY(t._2, t._1))
-    
+
     LineChartBuilder("truth")
       .xySeq(xy)
       .title("Truths")
@@ -115,12 +109,11 @@ object StepwiseReal extends App {
       .size(2200, 1400)
       .create()
   }
-  
-  
-  
+
+
   /**
    * Creates simple submission (e.g. all mean) and adds stepwise more and more real values to see
-   * what is the effect of training certain shop/items
+   * what could be the effect of training certain shop/items
    */
   def runMeanWithStepwiseReal(): Unit = {
 

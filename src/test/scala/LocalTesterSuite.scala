@@ -30,18 +30,18 @@ class LocalTesterSuite extends AnyFunSuite with Matchers {
   }
   test("31 20949 on 433.0 must be 4.0") {
     val id = Util.shopItemIdToSubmissionId(ShopItemId(31, 20949)).getOrElse(-1)
-    LocalTester.test(Seq(SubmissionDs(id, 433.0))) mustBe 4.0 +- 0.0001
+    LocalTester.test(Seq(SubmissionDs(id, 433.0))) mustBe 2.0 +- 0.0001
   }
   test("31 20949 on 429.0 must be 4.0") {
     val id = Util.shopItemIdToSubmissionId(ShopItemId(31, 20949)).getOrElse(-1)
-    LocalTester.test(Seq(SubmissionDs(id, 429.0))) mustBe 4.0 +- 0.0001
+    LocalTester.test(Seq(SubmissionDs(id, 429.0))) mustBe 2.0 +- 0.0001
   }
   test("mean of multiple submissions") {
     val submissions = Seq(
       SubmissionDs(Util.shopItemIdToSubmissionId(ShopItemId(31, 20949)).getOrElse(-1), 429.0),
       SubmissionDs(Util.shopItemIdToSubmissionId(ShopItemId(25, 20949)).getOrElse(-1), 464.0),
     )
-    LocalTester.test(submissions) mustBe 6.5 +- 0.0001
+    LocalTester.test(submissions) mustBe 2.549509 +- 0.0001
   }
   test("all real must be 0.0") {
     val truth = LocalTester.truthMap
