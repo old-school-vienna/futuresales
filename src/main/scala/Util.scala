@@ -12,15 +12,15 @@ object Util {
                  )
 
   def norm(data: Iterable[Double]): Norm = {
-    val d1: Seq[Double] = data.toSeq
-    val mean = d1.sum / d1.size
-    val sum = d1.map(v => math.pow(v - mean, 2)).sum
-    val dev = math.sqrt(sum / d1.size)
+    val dataSeq: Seq[Double] = data.toSeq
+    val mean = dataSeq.sum / dataSeq.size
+    val error = dataSeq.map(v => math.pow(v - mean, 2)).sum
+    val dev = math.sqrt(error / dataSeq.size)
     Norm(mean, dev)
   }
 
   def normalize(value: Double, norm: Norm): Double = {
-    ???
+    (value - norm.mean) / norm.stdDeviation
   }
 
   private lazy val _shopItemIdMap = DataProvider.readTestData().map(d => (d.shopItemId, d.id)).toMap

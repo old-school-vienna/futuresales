@@ -1,3 +1,4 @@
+import Util.Norm
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers
 
@@ -30,5 +31,20 @@ class UtilSuite extends AnyFunSuite with Matchers {
       norm.stdDeviation mustBe t._3 +- 0.00001
     }
   }
+
+  val normalizeData = Seq(
+    (1.0, Norm(0, 1), 1.0),
+    (10.0, Norm(5, 5), 1.0),
+    (0.0, Norm(5, 5), -1.0),
+    (5.0, Norm(5, 5), 0.0),
+    (1.0, Norm(5, 5), -0.8),
+  )
+
+  for ((t, n, e) <- normalizeData) {
+    test(s"normalize $t $n $e") {
+      Util.normalize(t, n) mustBe e +- 0.0001
+    }
+  }
+
 
 }
