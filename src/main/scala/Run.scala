@@ -24,28 +24,27 @@ object Run {
 
 
   private def run(args: Array[String]): Unit = {
-    if (args.length != 1) throw new IllegalArgumentException("require argument 'action' not found'")
-    val id = args(0)
-    actionMap.get(id) match {
-      case Some(value) =>
-        println(s"-------------------------------------------------------------------------------------")
-        println(s"Running '${value.id}'")
-        println(s"${value.desc}")
-        println(s"-------------------------------------------------------------------------------------")
-        value.action()
-      case None => throw new IllegalArgumentException(s"Error: Unknown action: '$id'")
+    if (args.length != 1) {
+      println(s"ERROR: require argument 'action' not found'")
+      println(s"possible actions:\n$actionsDesc")
+    } else {
+      val id = args(0)
+      actionMap.get(id) match {
+        case Some(value) =>
+          println(s"-------------------------------------------------------------------------------------")
+          println(s"Running '${value.id}'")
+          println(s"${value.desc}")
+          println(s"-------------------------------------------------------------------------------------")
+          value.action()
+        case None =>
+          println(s"Error: Unknown action: '$id'")
+          println(s"possible actions:\n$actionsDesc")
+      }
     }
   }
 
-
   def main(args: Array[String]): Unit = {
-    try {
-      run(args)
-    } catch {
-      case e: Exception =>
-        println(s"ERROR: ${e.getMessage}")
-        println(s"possible actions:\n$actionsDesc")
-    }
+    run(args)
   }
 
 

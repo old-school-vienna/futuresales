@@ -1,7 +1,4 @@
-import entelijan.viz.Viz.XY
 
-import scala.collection.immutable.{AbstractSeq, LinearSeq}
-import scala.util.Random
 
 object DfTrain {
 
@@ -210,8 +207,43 @@ object DfTrain {
       )
     }
 
-    
-    
+    def toDoubleArray(train: Train): Seq[Double] = {
+      val result: Array[Double] = Array.fill(20)(0.0)
+      result(0) = train.monthNr
+      result(1) = train.cnt
+      result(2) = train.cntShop
+      result(3) = train.cntItem
+      result(4) = train.cnt1
+      result(5) = train.cnt2
+      result(6) = train.cnt3
+      result(7) = train.cnt4
+      result(8) = train.cnt5
+      result(9) = train.cnt6
+      result(10) = train.cnt3m
+      result(11) = train.cnt6m
+      result(12) = train.cntShop1
+      result(13) = train.cntShop2
+      result(14) = train.cntShop3
+      result(15) = train.cntShop3m
+      result(16) = train.cntItem1
+      result(17) = train.cntItem2
+      result(18) = train.cntItem3
+      result(19) = train.cntItem3m
+      result.toSeq
+    }
+
+    def predictors(data: Iterable[Train]): Iterable[Double] = {
+      data
+        .filter(t => t.monthNr > 10)
+        .filter(t => t.monthNr < 34)
+        .flatMap(toDoubleArray)
+    }
+
+    def truth(id: ShopItemId): Double = {
+      val sid = Util.shopItemIdToSubmissionId(id).get
+      LocalTester.truthMap.getOrElse(sid, 0.0)
+    }
+
     /*
     ShopItemId(31,1201)         35 
     ShopItemId(55,20956)        35 
@@ -221,23 +253,14 @@ object DfTrain {
     
     Found length of every shop/item is 35
      */
-    val train = Util.readCsv("data/df_train.csv", toTrain)
-    val grouped = train
+
+    Util.readCsv("data/df_train.csv", toTrain)
       .groupBy(t => t.shopItemId)
+      .map { case (id, seq) => (id, truth(id), predictors(seq)) }
+      .filter(t => t._2 > 0.00001)
       .toSeq
-
-    val shopItems = Random.shuffle(grouped).take(16)
-
-    val data: Seq[Seq[(Int, Int)]] = grouped
-      .map { case (_, seq) => seq }
-      .map(s => s
-        .map(t => (t.monthNr, t.cnt))
-        .filter(_._2 < 34)
-        .sortBy(_._1)
-      )
-    
-//    
-
+      .sortBy(t => t._2)
+      .foreach(println(_))
   }
 
 }
