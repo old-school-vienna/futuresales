@@ -6,23 +6,6 @@ import scala.io.Source
 
 object Util {
 
-  case class Norm(
-                   mean: Double,
-                   stdDeviation: Double,
-                 )
-
-  def norm(data: Iterable[Double]): Norm = {
-    val dataSeq: Seq[Double] = data.toSeq
-    val mean = dataSeq.sum / dataSeq.size
-    val error = dataSeq.map(v => math.pow(v - mean, 2)).sum
-    val dev = math.sqrt(error / dataSeq.size)
-    Norm(mean, dev)
-  }
-
-  def normalize(value: Double, norm: Norm): Double = {
-    (value - norm.mean) / norm.stdDeviation
-  }
-
   private lazy val _shopItemIdMap = DataProvider.readTestData().map(d => (d.shopItemId, d.id)).toMap
 
   private lazy val _subMissionIdMap = DataProvider.readTestData().map(d => (d.id, d.shopItemId)).toMap
