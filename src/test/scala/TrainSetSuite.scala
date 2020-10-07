@@ -4,6 +4,8 @@ import org.scalatest.matchers.must.Matchers
 
 class TrainSetSuite extends AnyFunSuite with Matchers {
 
+  val _e = 0.00001
+
   val normData = Seq(
     (Seq(2.0, 4.0), 3.0, 1.0),
     (Seq(0.0, 4.0), 2.0, 2.0),
@@ -13,8 +15,8 @@ class TrainSetSuite extends AnyFunSuite with Matchers {
   for (t <- normData) {
     test(s"norm $t") {
       val n = norm(t._1)
-      n.mean mustBe t._2 +- 0.00001
-      n.stdDeviation mustBe t._3 +- 0.00001
+      n.mean mustBe t._2 +- _e
+      n.stdDeviation mustBe t._3 +- _e
     }
   }
 
@@ -28,9 +30,28 @@ class TrainSetSuite extends AnyFunSuite with Matchers {
 
   for ((t, n, e) <- normalizeData) {
     test(s"normalize $t $n $e") {
-      normalize(t, n) mustBe e +- 0.0001
+      normalize(t, n) mustBe e +- _e
     }
   }
 
+  test("to norm set") {
+    val ts = TrainSet(
+      Seq(
+        TrainSet.Row(Seq(0.0, 10.0, 5.0), 3.0),
+        TrainSet.Row(Seq(1.0, 5.0, 15.0), 4.0),
+        TrainSet.Row(Seq(2.0, 10.0, 30.0), 5.0),
+      )
+    )
+    val ns = TrainSet.normSet(ts)
+    ns.predictors.size mustBe 3
+    ns.predictors(0).mean mustBe 1.0 +- _e
+    ns.predictors(0).stdDeviation mustBe 0.81649 +- _e
+    ns.predictors(1).mean mustBe 8.3333333 +- _e
+    ns.predictors(1).stdDeviation mustBe 2.357022 +- _e
+    ns.predictors(2).mean mustBe 16.666666 +- _e
+    ns.predictors(2).stdDeviation mustBe 10.27402 +- _e
+    ns.data.mean mustBe 4.0 +- _e
+    ns.data.stdDeviation mustBe 0.81649 +- _e
+  }
 
 }

@@ -14,6 +14,18 @@ object TrainSet {
                    stdDeviation: Double,
                  )
 
+  def normSet(trainSet: TrainSet): NormSet = {
+    val cols = trainSet.rows(0).predictors.size
+    val is = 0 until cols
+    val predNorms: Seq[Norm] = for (i <- is) yield {
+      val col = for (row <- trainSet.rows) yield row.predictors(i)
+      norm(col)
+    }
+    val col = for (row <- trainSet.rows) yield row.data
+    val dataNorm = norm(col)
+    NormSet(predNorms, dataNorm)
+  }
+
   def norm(data: Iterable[Double]): Norm = {
     val dataSeq: Seq[Double] = data.toSeq
     val mean = dataSeq.sum / dataSeq.size
