@@ -1,4 +1,4 @@
-import TrainSet.{Norm, norm, normalize}
+import TrainSet.{Norm, deNormalize, norm, normalize}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers
 
@@ -54,4 +54,18 @@ class TrainSetSuite extends AnyFunSuite with Matchers {
     ns.data.stdDeviation mustBe 0.81649 +- _e
   }
 
+  val values = Seq(-10.0, -3.3333, 0.0, 2.2434, 12_293.9238742983)
+  val norms = Seq(Norm(23.34, 3.4), Norm(1.2938, 393_287.4))
+  for (v <- values; n <- norms) {
+    test(s"normalize deNormalize $v $n ") {
+      val v1 = normalize(v, n)
+      deNormalize(v1, n) mustBe v +- _e
+    }
+  }
+  for (v <- values; n <- norms) {
+    test(s"deNormalize normalize $v $n ") {
+      val v1 = deNormalize(v, n)
+      normalize(v1, n) mustBe v +- _e
+    }
+  }
 }

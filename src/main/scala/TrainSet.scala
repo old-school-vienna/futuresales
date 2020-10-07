@@ -38,6 +38,10 @@ object TrainSet {
     (value - norm.mean) / norm.stdDeviation
   }
 
+  def deNormalize(value: Double, norm: Norm): Double = {
+    (value * norm.stdDeviation) + norm.mean
+  }
+
 
 
 }
