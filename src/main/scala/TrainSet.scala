@@ -1,3 +1,7 @@
+import TrainSet.Norm
+import upickle.default.{macroRW, ReadWriter => RW}
+import upickle.default._
+
 case class TrainSet(
                      rows: Seq[TrainSet.Row]
                    )
@@ -7,12 +11,16 @@ object TrainSet {
   case class Row(predictors: Seq[Double],
                  data: Double)
 
-  case class NormSet(predictors: Seq[Norm], data: Norm)
 
-  case class Norm(
-                   mean: Double,
-                   stdDeviation: Double,
-                 )
+  case class Norm(mean: Double, stdDeviation: Double)
+  object Norm{
+    implicit val rw: RW[Norm] = macroRW
+  }
+
+  case class NormSet(predictors: Seq[Norm], data: Norm)
+  object NormSet{
+    implicit val rw: RW[NormSet] = macroRW
+  }
 
   def normSet(trainSet: TrainSet): NormSet = {
     val cols = trainSet.rows(0).predictors.size
@@ -61,5 +69,12 @@ object TrainSet {
     (value * norm.stdDeviation) + norm.mean
   }
 
+  def serializeNormSet(normSet: NormSet): String = {
+    write(normSet)
+  }
+
+  def deSerializeNormSet(json: String): NormSet = {
+    read[NormSet](json)
+  }
 
 }

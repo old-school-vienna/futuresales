@@ -1,4 +1,4 @@
-import TrainSet.{Norm, deNormalize, norm, normSet, normalize}
+import TrainSet._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers
 
@@ -90,4 +90,24 @@ class TrainSetSuite extends AnyFunSuite with Matchers {
     ts1.rows(2).predictors(2) mustBe _trainSet1.rows(2).predictors(2) +- _e
   }
 
+  test("de serialize train set") {
+    val json = """{"predictors":[{"mean":0,"stdDeviation":1},{"mean":10,"stdDeviation":22.4}],"data":{"mean":344,"stdDeviation":293.333}}"""
+    val ns = deSerializeNormSet(json)
+    ns.predictors.size mustBe 2
+    ns.predictors(0).mean mustBe 0.0 +- _e
+    ns.predictors(0).stdDeviation mustBe 1.0 +- _e
+    ns.predictors(1).mean mustBe 10.0 +- _e
+    ns.predictors(1).stdDeviation mustBe 22.4 +- _e
+
+    ns.data.mean mustBe 344.0 +- _e
+    ns.data.stdDeviation mustBe 293.333 +- _e
+  }
+
+  test("serialize train set") {
+    val ns = NormSet(
+      predictors = Seq(Norm(0, 1), Norm(10, 22.4)),
+      data = Norm(344, 293.333))
+    val json = serializeNormSet(ns)
+    json mustBe """{"predictors":[{"mean":0,"stdDeviation":1},{"mean":10,"stdDeviation":22.4}],"data":{"mean":344,"stdDeviation":293.333}}"""
+  }
 }
