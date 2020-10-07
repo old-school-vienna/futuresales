@@ -2,6 +2,8 @@ import TrainSet._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers
 
+import scala.util.Random
+
 class TrainSetSuite extends AnyFunSuite with Matchers {
 
   private val _e = 0.00001
@@ -110,4 +112,16 @@ class TrainSetSuite extends AnyFunSuite with Matchers {
     val json = serializeNormSet(ns)
     json mustBe """{"predictors":[{"mean":0,"stdDeviation":1},{"mean":10,"stdDeviation":22.4}],"data":{"mean":344,"stdDeviation":293.333}}"""
   }
+
+  test("write read norm set") {
+    val dataStdDeviation = Random.nextDouble() * 293.333
+    val ns = NormSet(
+      predictors = Seq(Norm(0, 1), Norm(10, 22.4)),
+      data = Norm(344, dataStdDeviation))
+    TrainSet.writeNormSet(ns, "test_norm_set")
+    val ns1 = TrainSet.readNormSet("test_norm_set")
+    ns1.predictors.size mustBe 2
+    ns1.data.stdDeviation mustBe dataStdDeviation +- _e
+  }
+
 }

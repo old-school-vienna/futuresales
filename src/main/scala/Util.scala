@@ -1,8 +1,9 @@
 import java.io.{BufferedWriter, File, FileWriter}
+import java.nio.charset.Charset
 
 import entelijan.viz.Viz.XY
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 object Util {
 
@@ -51,7 +52,7 @@ object Util {
                   fMap: T => String,
                   header: Option[String] = None): Unit = {
     val file = new File(filename)
-    val bw = new BufferedWriter(new FileWriter(file))
+    val bw = new BufferedWriter(new FileWriter(file, Charset.forName("UTF-8")))
     try {
       header.foreach(h => {
         bw.write(h)
@@ -63,6 +64,27 @@ object Util {
           bw.write(line)
           bw.write("\n")
         })
+    } finally {
+      bw.close()
+    }
+  }
+
+  def readString(
+                  filename: String): String = {
+    val src = Source.fromFile(filename)(Codec.UTF8)
+    try {
+      src.getLines().mkString("")
+    } finally {
+      src.close()
+    }
+  }
+
+  def writeString(filename: String,
+                  string: String): Unit = {
+    val file = new File(filename)
+    val bw = new BufferedWriter(new FileWriter(file))
+    try {
+      bw.write(string)
     } finally {
       bw.close()
     }
@@ -83,17 +105,17 @@ object Util {
     trainData.map(t => (t._1, meanItems(t._2)))
   }
 
-  def toSubm(fProposedValues: ShopItemId => Double)(t: TestDs): SubmissionDs = {
+  def toSubmission(fProposedValues: ShopItemId => Double)(t: TestDs): SubmissionDs = {
     val pred: Double = fProposedValues(t.shopItemId)
     SubmissionDs(t.id, pred)
   }
 
 
-  def toSubmStr(subm: SubmissionDs): String = {
+  def toSubmissionString(submission: SubmissionDs): String = {
     val sb = new StringBuilder()
-    sb.append(subm.id)
+    sb.append(submission.id)
     sb.append(",")
-    sb.append("%.2f".format(subm.itemCnt))
+    sb.append("%.2f".format(submission.itemCnt))
     sb.toString()
   }
 
@@ -105,14 +127,14 @@ object Util {
     }
     Util.writeCsv(filename = outFileName,
       trains = tests,
-      fMap = toSubmStr,
+      fMap = toSubmissionString,
       header = Some("ID,item_cnt_month"))
     println(s"Wrote submission to $outFileName")
   }
 
   def createSubmission(fProposedValues: ShopItemId => Double): Seq[SubmissionDs] = {
     DataProvider.readTestData()
-      .map(toSubm(fProposedValues)(_))
+      .map(toSubmission(fProposedValues)(_))
   }
 
   def toXy(values: Iterable[TrainDs], situation: Situation): Seq[XY] = {

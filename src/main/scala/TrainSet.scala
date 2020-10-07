@@ -69,6 +69,16 @@ object TrainSet {
     (value * norm.stdDeviation) + norm.mean
   }
 
+  def writeNormSet(normSet: NormSet, id: String): Unit = {
+    val filename = s"data/$id.upickle"
+    Util.writeString(filename, serializeNormSet(normSet))
+  }
+
+  def readNormSet(id: String): NormSet = {
+    val filename = s"data/$id.upickle"
+    deSerializeNormSet(Util.readString(filename))
+  }
+
   def serializeNormSet(normSet: NormSet): String = {
     write(normSet)
   }

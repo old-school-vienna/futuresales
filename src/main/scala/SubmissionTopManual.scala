@@ -135,7 +135,7 @@ object SubmissionTopManual {
     }
 
     val topItems: Seq[TopItem] = testData
-      .map(toSubm(id => proposedMean.getOrElse(id, 0.0))(_))
+      .map(toSubmission(id => proposedMean.getOrElse(id, 0.0))(_))
       .sortBy(t => t.itemCnt)
       .takeRight(20)
       .reverse
