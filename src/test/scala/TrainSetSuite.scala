@@ -1,10 +1,18 @@
-import TrainSet.{Norm, deNormalize, norm, normalize}
+import TrainSet.{Norm, deNormalize, norm, normSet, normalize}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.must.Matchers
 
 class TrainSetSuite extends AnyFunSuite with Matchers {
 
-  val _e = 0.00001
+  private val _e = 0.00001
+
+  private val _trainSet1 = TrainSet(
+    Seq(
+      TrainSet.Row(Seq(0.0, 10.0, 5.0), 3.0),
+      TrainSet.Row(Seq(1.0, 5.0, 15.0), 4.0),
+      TrainSet.Row(Seq(2.0, 10.0, 30.0), 5.0),
+    )
+  )
 
   val normData = Seq(
     (Seq(2.0, 4.0), 3.0, 1.0),
@@ -35,14 +43,7 @@ class TrainSetSuite extends AnyFunSuite with Matchers {
   }
 
   test("to norm set") {
-    val ts = TrainSet(
-      Seq(
-        TrainSet.Row(Seq(0.0, 10.0, 5.0), 3.0),
-        TrainSet.Row(Seq(1.0, 5.0, 15.0), 4.0),
-        TrainSet.Row(Seq(2.0, 10.0, 30.0), 5.0),
-      )
-    )
-    val ns = TrainSet.normSet(ts)
+    val ns = TrainSet.normSet(_trainSet1)
     ns.predictors.size mustBe 3
     ns.predictors(0).mean mustBe 1.0 +- _e
     ns.predictors(0).stdDeviation mustBe 0.81649 +- _e
@@ -57,15 +58,36 @@ class TrainSetSuite extends AnyFunSuite with Matchers {
   val values = Seq(-10.0, -3.3333, 0.0, 2.2434, 12_293.9238742983)
   val norms = Seq(Norm(23.34, 3.4), Norm(1.2938, 393_287.4))
   for (v <- values; n <- norms) {
-    test(s"normalize deNormalize $v $n ") {
+    test(s"normalize deNormalize value $v $n") {
       val v1 = normalize(v, n)
       deNormalize(v1, n) mustBe v +- _e
     }
   }
   for (v <- values; n <- norms) {
-    test(s"deNormalize normalize $v $n ") {
+    test(s"deNormalize normalize value $v $n") {
       val v1 = deNormalize(v, n)
       normalize(v1, n) mustBe v +- _e
     }
   }
+
+  test(s"normalize deNormalize train set 1") {
+    val ns = normSet(_trainSet1)
+    val ts0 = normalize(_trainSet1, ns)
+    val ts1 = deNormalize(ts0, ns)
+
+    ts1.rows.size mustBe _trainSet1.rows.size
+
+    ts1.rows(0).predictors(0) mustBe _trainSet1.rows(0).predictors(0) +- _e
+    ts1.rows(0).predictors(1) mustBe _trainSet1.rows(0).predictors(1) +- _e
+    ts1.rows(0).predictors(2) mustBe _trainSet1.rows(0).predictors(2) +- _e
+
+    ts1.rows(1).predictors(0) mustBe _trainSet1.rows(1).predictors(0) +- _e
+    ts1.rows(1).predictors(1) mustBe _trainSet1.rows(1).predictors(1) +- _e
+    ts1.rows(1).predictors(2) mustBe _trainSet1.rows(1).predictors(2) +- _e
+
+    ts1.rows(2).predictors(0) mustBe _trainSet1.rows(2).predictors(0) +- _e
+    ts1.rows(2).predictors(1) mustBe _trainSet1.rows(2).predictors(1) +- _e
+    ts1.rows(2).predictors(2) mustBe _trainSet1.rows(2).predictors(2) +- _e
+  }
+
 }

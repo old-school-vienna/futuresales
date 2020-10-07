@@ -1,13 +1,13 @@
 case class TrainSet(
-  rows: Seq[TrainSet.Row]
-                       )
+                     rows: Seq[TrainSet.Row]
+                   )
 
 object TrainSet {
 
   case class Row(predictors: Seq[Double],
                  data: Double)
 
-  case class NormSet(predictors: Seq[Norm], data:Norm)
+  case class NormSet(predictors: Seq[Norm], data: Norm)
 
   case class Norm(
                    mean: Double,
@@ -34,6 +34,25 @@ object TrainSet {
     Norm(mean, dev)
   }
 
+  private def convertRow(row: Row, normSet: NormSet, f: (Double, Norm) => Double): Row = {
+    val np = row.predictors.zip(normSet.predictors).map{
+      case (v, n) => f(v, n)
+    }
+    val nd = f(row.data, normSet.data)
+    Row(np, nd)
+  }
+
+
+  def normalize(trainSet: TrainSet, normSet: NormSet): TrainSet = {
+    val nrs = trainSet.rows.map(r => convertRow(r, normSet, normalize))
+    TrainSet(nrs)
+  }
+
+  def deNormalize(trainSet: TrainSet, normSet: NormSet): TrainSet = {
+    val nrs = trainSet.rows.map(r => convertRow(r, normSet, deNormalize))
+    TrainSet(nrs)
+  }
+
   def normalize(value: Double, norm: Norm): Double = {
     (value - norm.mean) / norm.stdDeviation
   }
@@ -41,7 +60,6 @@ object TrainSet {
   def deNormalize(value: Double, norm: Norm): Double = {
     (value * norm.stdDeviation) + norm.mean
   }
-
 
 
 }
