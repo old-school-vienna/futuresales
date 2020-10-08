@@ -7,12 +7,14 @@ object Run {
                            )
 
   private val actions = Seq(
+    Action("at", "Some analyse on df_train", () => DfTrain.analyseTrain()),
+    Action("mt", "Show months per shop/item on df_train", () => DfTrain.printMonths()),
+    Action("pcntt", "Plot count per shop/item on df_train", () => DfTrain.plotCount()),
     Action("pe3", "Prints the error for the train3 submission", () => DfTrain3.printErrorTrain3()),
     Action("pe4", "Prints the error for the train4 submission", () => DfTrain4.printErrorTrain4()),
-    Action("at", "Some analyse on df_train", () => DfTrain.analyseTrain()),
     Action("pear", "Show that testing a submission with all real values leads to error zero", () => SubmissionTopManual.printErrorAllReal()),
     Action("plef", "Plot the error for mean submissions with factor", () => SubmissionTopManual.plotErrorForMeanWithFactor()),
-    Action("sam", "Create a kaggle submissin. All proposition mean of months", () => SubmissionMean.submissionFileJustMean()),
+    Action("sam", "Create a kaggle submission. All proposition mean of months", () => SubmissionMean.submissionFileJustMean()),
     Action("pmt", "Plots the monthly sales for the top shop/item(s)", () => SubmissionTopManual.plotTopMeanFull()),
     Action("pe", "shows the effect of manual proposing", () => SubmissionTopManual.printEffectOfManual()),
     Action("rmsr", "Creates simple submission (e.g. all mean) and adds stepwise more and more real " +

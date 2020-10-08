@@ -1,4 +1,5 @@
 import Util.toi
+import entelijan.viz.Viz.XY
 
 object DfTrain {
 
@@ -17,28 +18,28 @@ object DfTrain {
    */
 
   private case class Train(
-                    shopItemId: ShopItemId,
-                    monthNr: Int,
-                    cnt: Int,
-                    cntShop: Int,
-                    cntItem: Int,
-                    cnt1: Int,
-                    cnt2: Int,
-                    cnt3: Int,
-                    cnt4: Int,
-                    cnt5: Int,
-                    cnt6: Int,
-                    cnt3m: Int,
-                    cnt6m: Int,
-                    cntShop1: Int,
-                    cntShop2: Int,
-                    cntShop3: Int,
-                    cntShop3m: Int,
-                    cntItem1: Int,
-                    cntItem2: Int,
-                    cntItem3: Int,
-                    cntItem3m: Int
-                  )
+                            shopItemId: ShopItemId,
+                            monthNr: Int,
+                            cnt: Int,
+                            cntShop: Int,
+                            cntItem: Int,
+                            cnt1: Int,
+                            cnt2: Int,
+                            cnt3: Int,
+                            cnt4: Int,
+                            cnt5: Int,
+                            cnt6: Int,
+                            cnt3m: Int,
+                            cnt6m: Int,
+                            cntShop1: Int,
+                            cntShop2: Int,
+                            cntShop3: Int,
+                            cntShop3m: Int,
+                            cntItem1: Int,
+                            cntItem2: Int,
+                            cntItem3: Int,
+                            cntItem3m: Int
+                          )
 
   private def toTrain(line: Array[String]): Train = {
     Train(
@@ -129,6 +130,63 @@ object DfTrain {
     println(f"all       size : ${all.size}%10d")
     println(f"filtered  size : ${filtered.size}%10d")
     println(f"predictor size : ${all(0)._3.size}%10d")
+  }
+
+  def printMonths(): Unit = {
+
+    val filename = Util.inputDirectory.resolve("df_train.csv")
+    Util.readCsv(filename, toTrain)
+      .groupBy(t => t.shopItemId)
+      .map { case (id, seq) => (id, truth(id), seq) }
+      .toSeq
+      .sortBy { case (_, truth, _) => truth }
+      .foreach { case (id, truth, seq) =>
+        val month = seq
+          .map(t => t.monthNr)
+          .sorted
+          .mkString(",")
+        println(f"$id $truth --- $month")
+      }
+  }
+
+  def plotCount(): Unit = {
+
+    val filename = Util.inputDirectory.resolve("df_train.csv")
+    val counts = Util.readCsv(filename, toTrain)
+      .groupBy(t => t.shopItemId)
+      .map { case (id, seq) => (id, truth(id), seq) }
+      .toSeq
+      .sortBy { case (_, truth, _) => truth }
+      .map { case (_, _, seq) =>
+        seq
+          .filter(t => t.monthNr < 34)
+          .map(t => t.cnt)
+          .zipWithIndex
+      }
+      .takeRight(250)
+      .grouped(10)
+      .toSeq
+      .reverse
+
+    import entelijan.vizb._
+
+    MultiChartBuilder("df_train_counts")
+      .title("sales counts")
+      .columns(5)
+      .size(2000, 2000)
+      .buildables(counts.map {
+        count =>
+          LineChartBuilder()
+            .title("10 shop/item")
+            .yRange(0, 500)
+            .creatables(count.map {
+              xys =>
+                DataRowBuilder()
+                  .data(xys.map { case (y, x) => XY(x, y) })
+                  .build()
+            })
+      })
+      .create()
   }
 
 }
