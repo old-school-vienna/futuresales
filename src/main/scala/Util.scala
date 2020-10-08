@@ -22,6 +22,16 @@ object Util {
 
   }
 
+  val errorItemsSituationLocal = Seq(
+    ShopItemId(12, 11373),
+    ShopItemId(25, 10201),
+    ShopItemId(42, 10201),
+    ShopItemId(42, 10202),
+    ShopItemId(25, 7224),
+    ShopItemId(25, 10202),
+    ShopItemId(12, 20949),
+  )
+
   def toi(s: String): Int = {
     if (s == "NA") 0
     else s.toInt
