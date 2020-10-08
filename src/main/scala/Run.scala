@@ -7,7 +7,6 @@ object Run {
                            )
 
   private val actions = Seq(
-    Action("wns", "write norm set", () => Tryout.writeNormSet()),
     Action("pe3", "Prints the error for the train3 submission", () => DfTrain.printErrorTrain3()),
     Action("pe4", "Prints the error for the train4 submission", () => DfTrain.printErrorTrain4()),
     Action("at", "Some analyse on df_train", () => DfTrain.analyseTrain()),

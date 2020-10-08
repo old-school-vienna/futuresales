@@ -3,13 +3,6 @@ import Util.Situation
 
 object Tryout {
 
-  def writeNormSet(): Unit = {
-    val ns = NormSet(
-      predictors = Seq(Norm(0, 1), Norm(10, 22.4)),
-      data = Norm(344, 293.333))
-    TrainSet.serializeNormSet(ns)
-  }
-
   def calcValueAt33(): Unit = {
     val ids = Seq(
       ShopItemId(31, 20949), // 431.0 (ShopItemId(31,20949),List(TrainDs(33,ShopItemId(31,20949),4.9973118279570965,431.0,71)))

@@ -92,27 +92,6 @@ class TrainSetSuite extends AnyFunSuite with Matchers {
     ts1.rows(2).predictors(2) mustBe _trainSet1.rows(2).predictors(2) +- _e
   }
 
-  test("de serialize train set") {
-    val json = """{"predictors":[{"mean":0,"stdDeviation":1},{"mean":10,"stdDeviation":22.4}],"data":{"mean":344,"stdDeviation":293.333}}"""
-    val ns = deSerializeNormSet(json)
-    ns.predictors.size mustBe 2
-    ns.predictors(0).mean mustBe 0.0 +- _e
-    ns.predictors(0).stdDeviation mustBe 1.0 +- _e
-    ns.predictors(1).mean mustBe 10.0 +- _e
-    ns.predictors(1).stdDeviation mustBe 22.4 +- _e
-
-    ns.data.mean mustBe 344.0 +- _e
-    ns.data.stdDeviation mustBe 293.333 +- _e
-  }
-
-  test("serialize train set") {
-    val ns = NormSet(
-      predictors = Seq(Norm(0, 1), Norm(10, 22.4)),
-      data = Norm(344, 293.333))
-    val json = serializeNormSet(ns)
-    json mustBe """{"predictors":[{"mean":0,"stdDeviation":1},{"mean":10,"stdDeviation":22.4}],"data":{"mean":344,"stdDeviation":293.333}}"""
-  }
-
   test("write read norm set") {
     val dataStdDeviation = Random.nextDouble() * 293.333
     val ns = NormSet(
@@ -120,8 +99,19 @@ class TrainSetSuite extends AnyFunSuite with Matchers {
       data = Norm(344, dataStdDeviation))
     TrainSet.writeNormSet(ns, "test_norm_set")
     val ns1 = TrainSet.readNormSet("test_norm_set")
+
     ns1.predictors.size mustBe 2
+
+    ns1.predictors.size mustBe 2
+    ns1.predictors(0).mean mustBe 0.0 +- _e
+    ns1.predictors(0).stdDeviation mustBe 1.0 +- _e
+    ns1.predictors(1).mean mustBe 10.0 +- _e
+    ns1.predictors(1).stdDeviation mustBe 22.4 +- _e
+
+    ns1.data.mean mustBe 344.0 +- _e
     ns1.data.stdDeviation mustBe dataStdDeviation +- _e
+
+
   }
 
 }

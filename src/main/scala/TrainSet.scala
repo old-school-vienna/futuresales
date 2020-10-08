@@ -74,19 +74,11 @@ object TrainSet {
   private def filename(id: String): Path = Util.outputDirectory.resolve(s"$id.upickle")
 
   def writeNormSet(normSet: NormSet, id: String): Unit = {
-    Util.writeString(filename(id), serializeNormSet(normSet))
+    Util.writeString(filename(id), write(normSet))
   }
 
   def readNormSet(id: String): NormSet = {
-    deSerializeNormSet(Util.readString(filename(id)))
-  }
-
-  def serializeNormSet(normSet: NormSet): String = {
-    write(normSet)
-  }
-
-  def deSerializeNormSet(json: String): NormSet = {
-    read[NormSet](json)
+    read[NormSet](Util.readString(filename(id)))
   }
 
 }
