@@ -7,8 +7,8 @@ object Run {
                            )
 
   private val actions = Seq(
-    Action("pe3", "Prints the error for the train3 submission", () => DfTrain.printErrorTrain3()),
-    Action("pe4", "Prints the error for the train4 submission", () => DfTrain.printErrorTrain4()),
+    Action("pe3", "Prints the error for the train3 submission", () => DfTrain3.printErrorTrain3()),
+    Action("pe4", "Prints the error for the train4 submission", () => DfTrain4.printErrorTrain4()),
     Action("at", "Some analyse on df_train", () => DfTrain.analyseTrain()),
     Action("pear", "Show that testing a submission with all real values leads to error zero", () => SubmissionTopManual.printErrorAllReal()),
     Action("plef", "Plot the error for mean submissions with factor", () => SubmissionTopManual.plotErrorForMeanWithFactor()),

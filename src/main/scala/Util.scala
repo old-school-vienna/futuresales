@@ -22,6 +22,16 @@ object Util {
 
   }
 
+  def toi(s: String): Int = {
+    if (s == "NA") 0
+    else s.toInt
+  }
+
+  def tod(s: String): Double = {
+    if (s == "NA") 0.0
+    else s.toDouble
+  }
+
   def trainDataGroupedByShopItemId(situation: Situation): Map[ShopItemId, Seq[TrainDs]] = {
     DataProvider.readSalesTrain(situation).groupBy(st => st.shopItemId)
   }
