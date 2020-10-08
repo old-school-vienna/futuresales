@@ -1,6 +1,6 @@
-import TrainSet.Norm
-import upickle.default.{macroRW, ReadWriter => RW}
-import upickle.default._
+import java.nio.file.Path
+
+import upickle.default.{macroRW, ReadWriter => RW, _}
 
 case class TrainSet(
                      rows: Seq[TrainSet.Row]
@@ -13,12 +13,14 @@ object TrainSet {
 
 
   case class Norm(mean: Double, stdDeviation: Double)
-  object Norm{
+
+  object Norm {
     implicit val rw: RW[Norm] = macroRW
   }
 
   case class NormSet(predictors: Seq[Norm], data: Norm)
-  object NormSet{
+
+  object NormSet {
     implicit val rw: RW[NormSet] = macroRW
   }
 
@@ -43,7 +45,7 @@ object TrainSet {
   }
 
   private def convertRow(row: Row, normSet: NormSet, f: (Double, Norm) => Double): Row = {
-    val np = row.predictors.zip(normSet.predictors).map{
+    val np = row.predictors.zip(normSet.predictors).map {
       case (v, n) => f(v, n)
     }
     val nd = f(row.data, normSet.data)
@@ -69,14 +71,14 @@ object TrainSet {
     (value * norm.stdDeviation) + norm.mean
   }
 
+  private def filename(id: String): Path = Util.outputDirectory.resolve(s"$id.upickle")
+
   def writeNormSet(normSet: NormSet, id: String): Unit = {
-    val filename = s"data/$id.upickle"
-    Util.writeString(filename, serializeNormSet(normSet))
+    Util.writeString(filename(id), serializeNormSet(normSet))
   }
 
   def readNormSet(id: String): NormSet = {
-    val filename = s"data/$id.upickle"
-    deSerializeNormSet(Util.readString(filename))
+    deSerializeNormSet(Util.readString(filename(id)))
   }
 
   def serializeNormSet(normSet: NormSet): String = {

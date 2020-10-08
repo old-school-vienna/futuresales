@@ -43,7 +43,7 @@ object DataExport {
       .sortBy(t => -t._1)
       .map(t => (t._2, t._3))
     val header = Seq("number", "shop_id", "item_id", "cat_id", "month", "item_price", "item_cnt").mkString(separator)
-    Util.writeCsv("data/export_train_sales.csv", data, trainDsToString, Some(header))
+    Util.writeCsv(Util.outputDirectory.resolve("export_train_sales.csv"), data, trainDsToString, Some(header))
   }
 
 

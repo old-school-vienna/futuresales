@@ -62,7 +62,8 @@ object DfTrain {
       )
     }
 
-    val sMap: Map[Int, Double] = Util.readCsv("data/df_train3.csv", toTrain3)
+    val filename = Util.outputDirectory.resolve("df_train3.csv")
+    val sMap: Map[Int, Double] = Util.readCsv(filename, toTrain3)
       .filter(_.monthNr == 34)
       .map(toSubmission)
       .map(s => (s.id, s.itemCnt))
@@ -114,7 +115,8 @@ object DfTrain {
       )
     }
 
-    val groups = Util.readCsv("data/df_train4.csv", toTrain4)
+    val filename = Util.outputDirectory.resolve("df_train4.csv")
+    val groups = Util.readCsv(filename, toTrain4)
       .groupBy(d => d.xvarsText)
       .toSeq
 
@@ -253,8 +255,8 @@ object DfTrain {
     
     Found length of every shop/item is 35
      */
-
-    Util.readCsv("data/df_train.csv", toTrain)
+    val filename = Util.outputDirectory.resolve("df_train.csv")
+    Util.readCsv(filename, toTrain)
       .groupBy(t => t.shopItemId)
       .map { case (id, seq) => (id, truth(id), predictors(seq)) }
       .filter(t => t._2 > 0.00001)

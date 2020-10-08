@@ -1,5 +1,6 @@
-import java.io.{BufferedWriter, File, FileWriter}
+import java.io.{BufferedWriter, FileWriter}
 import java.nio.charset.Charset
+import java.nio.file.{Files, Path, Paths}
 
 import entelijan.viz.Viz.XY
 
@@ -30,12 +31,12 @@ object Util {
   def submissionIdToShopItemId(submissionId: Int): ShopItemId = _subMissionIdMap(submissionId)
 
   def readCsv[T](
-                  filename: String,
+                  filename: Path,
                   fMap: Array[String] => T,
                   headerLines: Int = 1,
                   separator: String = ","): Seq[T] = {
 
-    val src = Source.fromFile(filename)
+    val src = Source.fromFile(filename.toFile)
     try {
       src.getLines()
         .drop(headerLines)
@@ -47,12 +48,11 @@ object Util {
     }
   }
 
-  def writeCsv[T](filename: String,
+  def writeCsv[T](filename: Path,
                   trains: Iterable[T],
                   fMap: T => String,
                   header: Option[String] = None): Unit = {
-    val file = new File(filename)
-    val bw = new BufferedWriter(new FileWriter(file, Charset.forName("UTF-8")))
+    val bw = new BufferedWriter(new FileWriter(filename.toFile, Charset.forName("UTF-8")))
     try {
       header.foreach(h => {
         bw.write(h)
@@ -69,9 +69,8 @@ object Util {
     }
   }
 
-  def readString(
-                  filename: String): String = {
-    val src = Source.fromFile(filename)(Codec.UTF8)
+  def readString(filename: Path): String = {
+    val src = Source.fromFile(filename.toFile)(Codec.UTF8)
     try {
       src.getLines().mkString("")
     } finally {
@@ -79,10 +78,8 @@ object Util {
     }
   }
 
-  def writeString(filename: String,
-                  string: String): Unit = {
-    val file = new File(filename)
-    val bw = new BufferedWriter(new FileWriter(file))
+  def writeString(filename: Path, string: String): Unit = {
+    val bw = new BufferedWriter(new FileWriter(filename.toFile))
     try {
       bw.write(string)
     } finally {
@@ -122,8 +119,8 @@ object Util {
   def createSubmissionFile(fProposedValues: ShopItemId => Double, situation: Situation, name: String): Unit = {
     val tests = createSubmission(fProposedValues)
     val outFileName = situation match {
-      case Situation.Full => s"data/submission_$name.csv"
-      case Situation.Local => s"data/submission_local_$name.csv"
+      case Situation.Full => Util.outputDirectory.resolve(s"submission_$name.csv")
+      case Situation.Local => Util.outputDirectory.resolve(s"submission_local_$name.csv")
     }
     Util.writeCsv(filename = outFileName,
       trains = tests,
@@ -158,6 +155,21 @@ object Util {
 
   def fromToStep(from: Double, to: Double, step: Double): Seq[Double] = {
     (BigDecimal(from) to BigDecimal(to) by BigDecimal(step)).map(_.toDouble)
+  }
+
+  def inputDirectory: Path = directory("INPUT_DIRECTORY")
+
+  def outputDirectory: Path = directory("OUTPUT_DIRECTORY")
+
+  private def directory(envName: String): Path = {
+    val envValue = System.getenv(envName)
+    val directoryPath =
+      if (envValue == null) Paths.get("data")
+      else Paths.get(envValue)
+    if (!Files.exists(directoryPath)) {
+      Files.createDirectories(directoryPath)
+    }
+    directoryPath
   }
 
 }

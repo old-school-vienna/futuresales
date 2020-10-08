@@ -1,3 +1,5 @@
+import java.nio.file.Path
+
 import Util.{Situation, readCsv}
 
 object DataProvider {
@@ -29,7 +31,7 @@ object DataProvider {
 
   private def _readTestData(): Seq[TestDs] = {
     println("--> reading test")
-    val result = readCsv("data/test.csv", toTestDs)
+    val result = readCsv(Util.inputDirectory.resolve("test.csv"), toTestDs)
     println("<-- reading test")
     result
   }
@@ -49,7 +51,7 @@ object DataProvider {
   }
 
   private def _readSalesTrainFull: Seq[TrainDs] = {
-    def readSalesTrainCsv(filename: String,
+    def readSalesTrainCsv(filename: Path,
                           catMapping: Map[Int, Int]): Seq[TrainDs] = {
 
       def toSailsTrain(line: Array[String]): SalesTrain = {
@@ -86,7 +88,7 @@ object DataProvider {
         ShopItemId(42, 10202),
         ShopItemId(25, 7224),
         ShopItemId(25, 10202),
-        ShopItemId(12,20949),
+        ShopItemId(12, 20949),
       )
 
       Util.readCsv(filename, toSailsTrain)
@@ -97,7 +99,7 @@ object DataProvider {
     }
 
 
-    def readCategories(filename: String): Map[Int, Int] = {
+    def readCategories(filename: Path): Map[Int, Int] = {
 
       def readIds(line: Array[String]): (Int, Int) = {
         val len = line.length
@@ -114,11 +116,11 @@ object DataProvider {
     }
 
     println(s"--> reading items")
-    val catMap = readCategories("data/items.csv")
+    val catMap = readCategories(Util.inputDirectory.resolve("items.csv"))
     println(s"<-- reading items")
     println(s"--> reading sales_train")
     val result = readSalesTrainCsv(
-      filename = "data/sales_train.csv",
+      filename = Util.inputDirectory.resolve("sales_train.csv"),
       catMapping = catMap)
     println(s"<-- reading sales_train")
     result
