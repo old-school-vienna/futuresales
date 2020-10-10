@@ -1,4 +1,4 @@
-import Util.toi
+import Util.{Situation, proposedValuesMean, toi}
 import entelijan.viz.Viz.XY
 
 object DfTrain {
@@ -104,6 +104,17 @@ object DfTrain {
     LocalTester.truthMap.getOrElse(sid, 0.0)
   }
 
+  private lazy val meanMap: Map[ShopItemId, Double] = {
+    val situation = Situation.Local
+    val trainData: Map[ShopItemId, Seq[TrainDs]] = DataProvider.readSalesTrain(situation)
+      .groupBy(st => st.shopItemId)
+    proposedValuesMean(trainData, situation)
+  }
+
+  private def mean(shopItemId: ShopItemId): Double = {
+    meanMap.getOrElse(shopItemId, 0.0)
+  }
+
   def analyseTrain(): Unit = {
 
     /*
@@ -137,10 +148,11 @@ object DfTrain {
     val filename = Util.inputDirectory.resolve("df_train.csv")
     Util.readCsv(filename, toTrain)
       .groupBy(t => t.shopItemId)
-      .map { case (id, seq) => (id, truth(id), seq) }
+      .map { case (id, seq) => (id, truth(id), mean(id), seq) }
       .toSeq
-      .sortBy { case (_, truth, _) => truth }
-      .foreach { case (id, truth, seq) =>
+      .sortBy { case (_, _, mean, _) => mean }
+      .sortBy { case (_, truth, _, _) => truth }
+      .foreach { case (id, truth, _, seq) =>
         val month = seq
           .map(t => t.monthNr)
           .sorted
@@ -151,42 +163,78 @@ object DfTrain {
 
   def plotCount(): Unit = {
 
-    val filename = Util.inputDirectory.resolve("df_train.csv")
-    val counts = Util.readCsv(filename, toTrain)
-      .groupBy(t => t.shopItemId)
-      .map { case (id, seq) => (id, truth(id), seq) }
-      .toSeq
-      .sortBy { case (_, truth, _) => truth }
-      .map { case (_, _, seq) =>
-        seq
-          .filter(t => t.monthNr < 34)
-          .map(t => t.cnt)
-          .zipWithIndex
+    sealed trait Location
+
+    object Location {
+
+      case object Top extends Location
+
+      case object Bottom extends Location
+
+    }
+
+    def minMax[T](all: Seq[(Double, Double, T)]): (Int, Int, Double, Double, Seq[T]) = {
+      val ts = all.map { case (t, _, _) => t.toInt }
+      val tm = all.map { case (_, m, _) => m }
+      val seq = all.map { case (_, _, ys) => ys }
+      (ts.min, ts.max, tm.min, tm.max, seq)
+    }
+
+    val grpSize = 20
+
+    def plot(counts: Seq[(Double, Double, Seq[(Int, Int)])], location: Location): Unit = {
+
+      val counts1 = location match {
+        case Location.Top =>
+          counts.take(grpSize * 50)
+        case Location.Bottom =>
+          counts.takeRight(grpSize * 50)
       }
-      .takeRight(250)
-      .grouped(10)
-      .toSeq
-      .reverse
+      val counts2 = counts1
+        .grouped(grpSize)
+        .toSeq
+        .map(minMax)
 
-    import entelijan.vizb._
+      import entelijan.vizb._
 
-    MultiChartBuilder("df_train_counts")
-      .title("sales counts")
-      .columns(5)
-      .size(2000, 2000)
-      .buildables(counts.map {
-        count =>
-          LineChartBuilder()
-            .title("10 shop/item")
-            .yRange(0, 500)
-            .creatables(count.map {
-              xys =>
+      val id = location match {
+        case Location.Top => "top"
+        case Location.Bottom => "bottom"
+      }
+      MultiChartBuilder(s"df_train_counts_$id")
+        .title(s"sales for $grpSize shop/item on every diagram with similar truth - $id")
+        .columns(5)
+        .size(2000, 4000)
+        .buildables(counts2.map {
+          case (truthMin, truthMax, meanMin, meanMax, count) =>
+            LineChartBuilder()
+              .title(f"min/max truth $truthMin/$truthMax mean $meanMin%.2f/$meanMax%.2f")
+              .yRangeMin(0)
+              .creatables(count.map(xys =>
                 DataRowBuilder()
                   .data(xys.map { case (y, x) => XY(x, y) })
-                  .build()
-            })
-      })
-      .create()
+                  .build()))
+        })
+        .create()
+    }
+
+    val filename = Util.inputDirectory.resolve(s"df_train.csv")
+    val counts: Seq[(Double, Double, Seq[(Int, Int)])] = Util.readCsv(filename, toTrain)
+      .filter(t => !Util.errorItemsSituationLocal.contains(t.shopItemId))
+      .groupBy(t => t.shopItemId)
+      .map { case (id, seq) => (id, truth(id), mean(id), seq) }
+      .toSeq
+      .sortBy { case (_, _, mean, _) => -mean }
+      .sortBy { case (_, truth, _, _) => -truth }
+      .map { case (_, truth, mean, seq) =>
+        (truth, mean, seq
+          .filter(t => t.monthNr < 34)
+          .map(t => t.cnt)
+          .zipWithIndex)
+      }
+
+    plot(counts, Location.Top)
+    plot(counts, Location.Bottom)
   }
 
 }
